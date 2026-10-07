@@ -1,0 +1,166 @@
+{
+  "instanceId": "__INSTANCE__",
+  "status": "ok",
+  "error": {
+    "kind": "network",
+    "terminal": false,
+    "detail": null
+  },
+  "fetchedAt": 1791295200000,
+  "staleAfterMs": 3900000,
+  "partial": false,
+  "paused": false,
+  "multiStudent": true,
+  "students": [
+    {
+      "label": "Student A",
+      "notice": null,
+      "courses": [
+        {
+          "name": "Algebra I",
+          "gradeText": "A-",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 1,
+          "failed": false
+        },
+        {
+          "name": "Biology",
+          "gradeText": "B+ 87.2%",
+          "gradeKind": "both",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 2,
+          "failed": false
+        },
+        {
+          "name": "World History",
+          "gradeText": "--",
+          "gradeKind": "none",
+          "hidden": true,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "English 9",
+          "gradeText": "91.4%",
+          "gradeKind": "percent",
+          "hidden": false,
+          "periodFallback": true,
+          "missingCount": 2,
+          "failed": false
+        }
+      ],
+      "missing": [
+        {
+          "name": "Chapter 4 Quiz",
+          "course": "Biology",
+          "dueAt": "2026-09-28T23:59:00Z",
+          "pointsText": "20 pts",
+          "inferred": false
+        },
+        {
+          "name": "Lab Report: Cell Structure",
+          "course": "Biology",
+          "dueAt": "2026-10-02T23:59:00Z",
+          "pointsText": "50 pts",
+          "inferred": false
+        },
+        {
+          "name": "Linear Equations Worksheet",
+          "course": "Algebra I",
+          "dueAt": "2026-10-05T22:00:00Z",
+          "pointsText": "10 pts",
+          "inferred": true
+        }
+      ],
+      "missingTotal": 5,
+      "recent": [
+        {
+          "name": "Unit 3 Test",
+          "course": "Algebra I",
+          "scoreText": "92 / 100",
+          "late": false,
+          "excused": false,
+          "hidden": false,
+          "gradedAt": "2026-10-05T14:00:00Z"
+        },
+        {
+          "name": "Reading Journal 6",
+          "course": "English 9",
+          "scoreText": "Complete",
+          "late": true,
+          "excused": false,
+          "hidden": false,
+          "gradedAt": "2026-10-03T14:00:00Z"
+        },
+        {
+          "name": "Map Project",
+          "course": "World History",
+          "scoreText": "Hidden",
+          "late": false,
+          "excused": false,
+          "hidden": true,
+          "gradedAt": "2026-10-02T14:00:00Z"
+        }
+      ]
+    },
+    {
+      "label": "Student B",
+      "notice": null,
+      "courses": [
+        {
+          "name": "Algebra I",
+          "gradeText": "B",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "Biology",
+          "gradeText": "A",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "World History",
+          "gradeText": "88.5%",
+          "gradeKind": "percent",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "English 9",
+          "gradeText": "A-",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        }
+      ],
+      "missing": [],
+      "missingTotal": 0,
+      "recent": [
+        {
+          "name": "Quiz 2",
+          "course": "Biology",
+          "scoreText": "EX",
+          "late": false,
+          "excused": true,
+          "hidden": false,
+          "gradedAt": "2026-10-04T14:00:00Z"
+        }
+      ]
+    }
+  ]
+}

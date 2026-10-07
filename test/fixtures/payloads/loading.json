@@ -1,0 +1,11 @@
+{
+  "instanceId": "__INSTANCE__",
+  "status": "loading",
+  "error": null,
+  "fetchedAt": null,
+  "staleAfterMs": 3900000,
+  "partial": false,
+  "paused": false,
+  "multiStudent": false,
+  "students": []
+}

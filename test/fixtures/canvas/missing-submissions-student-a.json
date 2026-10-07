@@ -1,0 +1,47 @@
+[
+  {
+    "id": "5001",
+    "course_id": "1001",
+    "name": "Chapter 4 Worksheet",
+    "due_at": "2026-10-02T04:59:00Z",
+    "points_possible": 20,
+    "grading_type": "points",
+    "submission_types": ["online_upload"],
+    "published": true,
+    "locked_for_user": false,
+    "course": {
+      "id": "1001",
+      "name": "Algebra I"
+    }
+  },
+  {
+    "id": "5012",
+    "course_id": "1003",
+    "name": "Map Quiz",
+    "due_at": "2026-09-28T04:59:00Z",
+    "points_possible": 15,
+    "grading_type": "points",
+    "submission_types": ["online_upload"],
+    "published": true,
+    "locked_for_user": false,
+    "course": {
+      "id": "1003",
+      "name": "World History"
+    }
+  },
+  {
+    "id": "5008",
+    "course_id": "1004",
+    "name": "Vocabulary Quiz",
+    "due_at": "2026-10-01T04:59:00Z",
+    "points_possible": 10,
+    "grading_type": "points",
+    "submission_types": ["online_upload"],
+    "published": true,
+    "locked_for_user": false,
+    "course": {
+      "id": "1004",
+      "name": "English 9"
+    }
+  }
+]

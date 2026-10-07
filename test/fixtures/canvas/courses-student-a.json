@@ -1,0 +1,128 @@
+[
+  {
+    "id": "1001",
+    "name": "Algebra I",
+    "course_code": "ALGEBRA-I",
+    "workflow_state": "available",
+    "hide_final_grades": false,
+    "access_restricted_by_date": false,
+    "term": {
+      "id": "801",
+      "name": "Fall 2026"
+    },
+    "enrollments": [
+      {
+        "type": "student",
+        "role": "StudentEnrollment",
+        "user_id": "2001",
+        "enrollment_state": "active",
+        "computed_current_score": 91.4,
+        "computed_final_score": 84.2,
+        "computed_current_grade": "A-",
+        "computed_final_grade": "B",
+        "has_grading_periods": true,
+        "current_grading_period_id": "9001",
+        "current_period_computed_current_score": 93,
+        "current_period_computed_current_grade": "A",
+        "current_period_computed_final_score": 90,
+        "current_period_computed_final_grade": "A-"
+      }
+    ]
+  },
+  {
+    "id": "1002",
+    "name": "Biology",
+    "course_code": "BIOLOGY",
+    "workflow_state": "available",
+    "hide_final_grades": false,
+    "access_restricted_by_date": false,
+    "term": {
+      "id": "801",
+      "name": "Fall 2026"
+    },
+    "enrollments": [
+      {
+        "type": "student",
+        "role": "StudentEnrollment",
+        "user_id": "2001",
+        "enrollment_state": "active",
+        "computed_current_score": 84.2,
+        "computed_final_score": 80,
+        "computed_current_grade": "B",
+        "computed_final_grade": "B-"
+      }
+    ]
+  },
+  {
+    "id": "1003",
+    "name": "World History",
+    "course_code": "WORLD-HISTORY",
+    "workflow_state": "available",
+    "hide_final_grades": true,
+    "access_restricted_by_date": false,
+    "term": {
+      "id": "801",
+      "name": "Fall 2026"
+    },
+    "enrollments": [
+      {
+        "type": "student",
+        "role": "StudentEnrollment",
+        "user_id": "2001",
+        "enrollment_state": "active",
+        "computed_current_score": null,
+        "computed_final_score": null,
+        "computed_current_grade": null,
+        "computed_final_grade": null
+      }
+    ]
+  },
+  {
+    "id": "1004",
+    "name": "English 9",
+    "course_code": "ENGLISH-9",
+    "workflow_state": "available",
+    "hide_final_grades": false,
+    "access_restricted_by_date": false,
+    "term": {
+      "id": "801",
+      "name": "Fall 2026"
+    },
+    "enrollments": [
+      {
+        "type": "student",
+        "role": "StudentEnrollment",
+        "user_id": "2001",
+        "enrollment_state": "active",
+        "computed_current_score": 78.5,
+        "computed_final_score": 75,
+        "computed_current_grade": null,
+        "computed_final_grade": null
+      }
+    ]
+  },
+  {
+    "id": "1005",
+    "name": "Homeroom",
+    "course_code": "HOMEROOM",
+    "workflow_state": "available",
+    "hide_final_grades": false,
+    "access_restricted_by_date": false,
+    "term": {
+      "id": "801",
+      "name": "Fall 2026"
+    },
+    "enrollments": [
+      {
+        "type": "student",
+        "role": "StudentEnrollment",
+        "user_id": "2001",
+        "enrollment_state": "active",
+        "computed_current_score": 100,
+        "computed_final_score": 100,
+        "computed_current_grade": "A",
+        "computed_final_grade": "A"
+      }
+    ]
+  }
+]

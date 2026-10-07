@@ -1,0 +1,32 @@
+[
+  {
+    "id": "95102",
+    "assignment_id": "5102",
+    "user_id": "2002",
+    "workflow_state": "graded",
+    "score": 29,
+    "grade": "29",
+    "entered_score": 29,
+    "entered_grade": null,
+    "missing": false,
+    "late": false,
+    "excused": false,
+    "submitted_at": "2026-10-03T09:00:00Z",
+    "graded_at": "2026-10-05T09:00:00Z",
+    "posted_at": "2026-10-05T09:00:00Z",
+    "late_policy_status": null,
+    "seconds_late": 0,
+    "cached_due_date": "2026-10-02T04:59:00Z",
+    "assignment": {
+      "id": "5102",
+      "course_id": "1002",
+      "name": "Lab 5",
+      "due_at": "2026-10-02T04:59:00Z",
+      "points_possible": 30,
+      "grading_type": "points",
+      "submission_types": ["online_upload"],
+      "published": true,
+      "locked_for_user": false
+    }
+  }
+]

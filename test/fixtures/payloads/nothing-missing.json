@@ -1,0 +1,112 @@
+{
+  "instanceId": "__INSTANCE__",
+  "status": "ok",
+  "error": null,
+  "fetchedAt": 1791302100000,
+  "staleAfterMs": 3900000,
+  "partial": false,
+  "paused": false,
+  "multiStudent": true,
+  "students": [
+    {
+      "label": "Student A",
+      "notice": null,
+      "courses": [
+        {
+          "name": "Algebra I",
+          "gradeText": "A-",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "Biology",
+          "gradeText": "B+ 87.2%",
+          "gradeKind": "both",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "World History",
+          "gradeText": "--",
+          "gradeKind": "none",
+          "hidden": true,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "English 9",
+          "gradeText": "91.4%",
+          "gradeKind": "percent",
+          "hidden": false,
+          "periodFallback": true,
+          "missingCount": 0,
+          "failed": false
+        }
+      ],
+      "missing": [],
+      "missingTotal": 0,
+      "recent": []
+    },
+    {
+      "label": "Student B",
+      "notice": null,
+      "courses": [
+        {
+          "name": "Algebra I",
+          "gradeText": "B",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "Biology",
+          "gradeText": "A",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "World History",
+          "gradeText": "88.5%",
+          "gradeKind": "percent",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "English 9",
+          "gradeText": "A-",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        }
+      ],
+      "missing": [],
+      "missingTotal": 0,
+      "recent": [
+        {
+          "name": "Quiz 2",
+          "course": "Biology",
+          "scoreText": "EX",
+          "late": false,
+          "excused": true,
+          "hidden": false,
+          "gradedAt": "2026-10-04T14:00:00Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+node_modules/
+.env
+*.log
+coverage/
+canvas-token*
+*.token
+canvas-grades-cache*.json

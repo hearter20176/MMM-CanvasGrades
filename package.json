@@ -1,0 +1,47 @@
+{
+  "name": "mmm-canvasgrades",
+  "version": "1.0.0",
+  "description": "MagicMirror² module that shows a Canvas LMS observer's students' course grades and missing assignments.",
+  "keywords": [
+    "MagicMirror",
+    "Canvas",
+    "Canvas LMS",
+    "grades",
+    "school",
+    "observer"
+  ],
+  "homepage": "https://github.com/hearter20176/MMM-CanvasGrades#readme",
+  "bugs": {
+    "url": "https://github.com/hearter20176/MMM-CanvasGrades/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hearter20176/MMM-CanvasGrades.git"
+  },
+  "license": "MIT",
+  "author": "hearter20176",
+  "type": "commonjs",
+  "main": "MMM-CanvasGrades.js",
+  "scripts": {
+    "check": "node --run lint && node --run lint:css && node --run lint:md && node --run format:check && node --run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint",
+    "lint:css": "stylelint \"**/*.css\"",
+    "lint:md": "markdownlint-cli2",
+    "test": "node --test --test-timeout=30000 test/*.test.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "eslint-plugin-package-json": "^1.10.1",
+    "globals": "^17.13.0",
+    "markdownlint-cli2": "^0.23.3",
+    "prettier": "^3.9.9",
+    "stylelint": "^17.16.0",
+    "stylelint-config-standard": "^40.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

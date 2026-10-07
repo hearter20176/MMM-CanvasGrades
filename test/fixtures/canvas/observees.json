@@ -1,0 +1,16 @@
+[
+  {
+    "id": "2001",
+    "name": "Student A",
+    "sortable_name": "A, Student",
+    "short_name": "Student A",
+    "observation_link_root_account_ids": ["1"]
+  },
+  {
+    "id": "2002",
+    "name": "Student B",
+    "sortable_name": "B, Student",
+    "short_name": "Student B",
+    "observation_link_root_account_ids": ["1"]
+  }
+]

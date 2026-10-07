@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>MMM-CanvasGrades preview</title>
+		<!-- Font Awesome comes from the host MagicMirror install (valid when this module sits in MagicMirror/modules/). -->
+		<link rel="stylesheet" href="../../../../css/font-awesome.css" />
+		<link rel="stylesheet" href="../../MMM-CanvasGrades.css" />
+		<style>
+			html,
+			body {
+				margin: 0;
+				background: #000;
+				color: #fff;
+				font-family: "Roboto Condensed", Arial, sans-serif;
+			}
+			#frame {
+				width: 1080px;
+				box-sizing: border-box;
+				padding: 24px;
+				background: #000;
+			}
+			.region.top.right .module {
+				width: 500px;
+				margin-left: auto;
+			}
+			.region.top.right .module.cg-wide {
+				width: 1000px;
+			}
+		</style>
+	</head>
+	<body class="mm-night">
+		<div id="frame">
+			<div class="region top right">
+				<div class="container">
+					<div class="module MMM-CanvasGrades" id="module_preview_MMM-CanvasGrades">
+						<div class="module-content"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script src="./preview.js"></script>
+		<script src="../../MMM-CanvasGrades.js"></script>
+		<script>
+			window.CGPreview.run();
+		</script>
+	</body>
+</html>

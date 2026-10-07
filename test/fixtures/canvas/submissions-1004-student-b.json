@@ -1,0 +1,32 @@
+[
+  {
+    "id": "95104",
+    "assignment_id": "5104",
+    "user_id": "2002",
+    "workflow_state": "graded",
+    "score": 18,
+    "grade": "18",
+    "entered_score": 18,
+    "entered_grade": null,
+    "missing": false,
+    "late": false,
+    "excused": false,
+    "submitted_at": "2026-10-03T09:00:00Z",
+    "graded_at": "2026-10-05T09:00:00Z",
+    "posted_at": "2026-10-05T09:00:00Z",
+    "late_policy_status": null,
+    "seconds_late": 0,
+    "cached_due_date": "2026-10-04T04:59:00Z",
+    "assignment": {
+      "id": "5104",
+      "course_id": "1004",
+      "name": "Poem Analysis",
+      "due_at": "2026-10-04T04:59:00Z",
+      "points_possible": 20,
+      "grading_type": "points",
+      "submission_types": ["online_upload"],
+      "published": true,
+      "locked_for_user": false
+    }
+  }
+]

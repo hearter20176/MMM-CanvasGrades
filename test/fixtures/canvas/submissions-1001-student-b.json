@@ -1,0 +1,32 @@
+[
+  {
+    "id": "95101",
+    "assignment_id": "5101",
+    "user_id": "2002",
+    "workflow_state": "graded",
+    "score": 17,
+    "grade": "17",
+    "entered_score": 17,
+    "entered_grade": null,
+    "missing": false,
+    "late": false,
+    "excused": false,
+    "submitted_at": "2026-10-03T09:00:00Z",
+    "graded_at": "2026-10-05T09:00:00Z",
+    "posted_at": "2026-10-05T09:00:00Z",
+    "late_policy_status": null,
+    "seconds_late": 0,
+    "cached_due_date": "2026-10-03T04:59:00Z",
+    "assignment": {
+      "id": "5101",
+      "course_id": "1001",
+      "name": "Quiz 4",
+      "due_at": "2026-10-03T04:59:00Z",
+      "points_possible": 20,
+      "grading_type": "points",
+      "submission_types": ["online_upload"],
+      "published": true,
+      "locked_for_user": false
+    }
+  }
+]

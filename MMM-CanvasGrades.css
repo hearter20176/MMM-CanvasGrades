@@ -1,0 +1,334 @@
+/* MMM-CanvasGrades styles
+   Colours come from the shared --mm-* theme variables (set on body.mm-day / body.mm-night
+   by the theme's custom.css); the fallbacks are the night values.
+
+   Scale: written for a 1080x1920 portrait mirror viewed from a distance. The root font size
+   is 1.3rem (about 21px) and nothing inside is smaller than 1em, so body text stays above 20px.
+   Hierarchy comes from colour and weight, not from shrinking text.
+
+   Layout: the card has a fixed width per layout, so loading, error and ok states occupy the
+   same footprint and a refresh never moves neighbouring modules sideways. Every selector is
+   scoped under .cg-root, which only this module creates. No animation, no glow. */
+
+.cg-root {
+	--cg-text: var(--mm-text, #e8edf6);
+	--cg-text-2: var(--mm-text-2, #9ba7bc);
+	--cg-border: var(--mm-border, rgb(255 255 255 / 10%));
+	--cg-tile: var(--mm-tile, rgb(255 255 255 / 5%));
+	--cg-bg: rgb(14 20 38 / 78%);
+
+	/* Missing-work accent: muted amber, kept soft so it reads at a glance without glare. */
+	--cg-warn: rgb(232 170 120);
+	--cg-warn-bg: rgb(232 170 120 / 10%);
+	--cg-warn-line: rgb(232 170 120 / 70%);
+	--cg-ok: rgb(143 190 160);
+
+	box-sizing: border-box;
+	width: min(23em, calc(100vw - 2rem));
+	padding: 0.6em 0.8em;
+	font-family: inherit;
+	font-size: 1.3rem;
+	line-height: 1.3;
+	text-align: left;
+	color: var(--cg-text);
+	background: var(--cg-bg);
+	border: 1px solid var(--cg-border);
+	border-radius: 18px;
+	transition:
+		background-color 1.5s ease,
+		border-color 1.5s ease,
+		color 1.5s ease;
+}
+
+body.mm-day .cg-root {
+	--cg-text: var(--mm-text, #1d2738);
+	--cg-text-2: var(--mm-text-2, #5a6679);
+	--cg-bg: rgb(255 255 255 / 90%);
+	--cg-warn: rgb(176 82 24);
+	--cg-warn-bg: rgb(176 82 24 / 9%);
+	--cg-warn-line: rgb(176 82 24 / 70%);
+	--cg-ok: rgb(40 110 70);
+}
+
+.cg-root.cg-layout-full {
+	width: min(48em, calc(100vw - 2rem));
+}
+
+/* Render failure: occupy nothing. */
+.cg-root.cg-empty {
+	display: none;
+}
+
+.cg-root .cg-status {
+	color: var(--cg-text-2);
+}
+
+.cg-root .cg-status-error {
+	color: var(--cg-warn);
+}
+
+/* Students */
+.cg-root .cg-student + .cg-student {
+	margin-top: 0.8em;
+	padding-top: 0.8em;
+	border-top: 1px solid var(--cg-border);
+}
+
+.cg-root .cg-student-name {
+	margin-bottom: 0.3em;
+	overflow: hidden;
+	font-weight: 600;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	unicode-bidi: isolate;
+	color: var(--cg-text);
+}
+
+.cg-root .cg-notice {
+	color: var(--cg-text-2);
+}
+
+/* Missing work: the most prominent block (accent rail, tint, heavier weight). */
+.cg-root .cg-missing {
+	margin-bottom: 0.6em;
+	padding: 0.3em 0.6em;
+	background: var(--cg-warn-bg);
+	border-left: 4px solid var(--cg-warn-line);
+	border-radius: 0 10px 10px 0;
+}
+
+.cg-root .cg-missing-item {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto auto;
+	gap: 0 0.5em;
+	align-items: baseline;
+	padding: 0.2em 0;
+}
+
+.cg-root .cg-missing-icon {
+	grid-column: 1;
+	grid-row: 1;
+	align-self: center;
+	color: var(--cg-warn);
+}
+
+.cg-root .cg-missing-name {
+	grid-column: 2 / -1;
+	grid-row: 1;
+	min-width: 0;
+	overflow: hidden;
+	font-weight: 600;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	unicode-bidi: isolate;
+	color: var(--cg-text);
+}
+
+.cg-root .cg-missing-course {
+	grid-column: 2;
+	grid-row: 2;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	unicode-bidi: isolate;
+	color: var(--cg-text-2);
+}
+
+.cg-root .cg-missing-due {
+	grid-column: 3;
+	grid-row: 2;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+	color: var(--cg-warn);
+}
+
+.cg-root .cg-missing-points {
+	grid-column: 4;
+	grid-row: 2;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+	color: var(--cg-text-2);
+}
+
+/* Inferred (not flagged by Canvas): a little quieter. */
+.cg-root .cg-missing-inferred {
+	opacity: 0.8;
+}
+
+.cg-root .cg-more {
+	padding-top: 0.1em;
+	color: var(--cg-text-2);
+}
+
+/* Full layout: one line per missing item. */
+.cg-root.cg-layout-full .cg-missing-item {
+	grid-template-columns: auto minmax(0, 1fr) minmax(0, 10em) auto auto;
+}
+
+.cg-root.cg-layout-full .cg-missing-name {
+	grid-column: 2;
+}
+
+.cg-root.cg-layout-full .cg-missing-course {
+	grid-column: 3;
+	grid-row: 1;
+}
+
+.cg-root.cg-layout-full .cg-missing-due {
+	grid-column: 4;
+	grid-row: 1;
+}
+
+.cg-root.cg-layout-full .cg-missing-points {
+	grid-column: 5;
+	grid-row: 1;
+}
+
+/* Nothing missing */
+.cg-root .cg-clear {
+	display: flex;
+	gap: 0.5em;
+	align-items: baseline;
+	margin-bottom: 0.4em;
+	color: var(--cg-text-2);
+}
+
+.cg-root .cg-clear-icon {
+	color: var(--cg-ok);
+}
+
+/* Course rows: fixed grade (6em), note (3.2em) and badge (2.4em) columns so they line up across
+   rows and across student sections (each section is its own grid, so auto widths would drift). */
+.cg-root .cg-courses {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 6em 3.2em 2.4em;
+	column-gap: 0.6em;
+}
+
+.cg-root .cg-course {
+	display: grid;
+	grid-template-columns: subgrid;
+	grid-column: 1 / -1;
+	align-items: baseline;
+	padding: 0.15em 0;
+}
+
+.cg-root .cg-course-name {
+	grid-column: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	unicode-bidi: isolate;
+	color: var(--cg-text);
+}
+
+.cg-root .cg-course-grade {
+	grid-column: 2;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	text-align: right;
+	white-space: nowrap;
+	color: var(--cg-text);
+}
+
+.cg-root .cg-grade-none {
+	font-weight: 400;
+	color: var(--cg-text-2);
+}
+
+.cg-root .cg-course-hidden .cg-course-name {
+	color: var(--cg-text-2);
+}
+
+.cg-root .cg-course-failed .cg-course-grade {
+	color: var(--cg-text-2);
+}
+
+.cg-root .cg-period-note {
+	grid-column: 3;
+	color: var(--cg-text-2);
+}
+
+.cg-root .cg-badge {
+	display: inline-flex;
+	grid-column: 4;
+	gap: 0.3em;
+	align-items: baseline;
+	justify-content: flex-end;
+	min-width: 2.4em;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	color: var(--cg-warn);
+}
+
+.cg-root .cg-badge-count {
+	color: var(--cg-warn);
+}
+
+/* Recent grades (full layout) */
+.cg-root .cg-recent {
+	margin-top: 0.6em;
+	padding-top: 0.5em;
+	border-top: 1px solid var(--cg-border);
+}
+
+.cg-root .cg-recent-item {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 8em) auto auto;
+	gap: 0 0.6em;
+	align-items: baseline;
+	padding: 0.15em 0;
+}
+
+.cg-root .cg-recent-name {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	unicode-bidi: isolate;
+	color: var(--cg-text);
+}
+
+.cg-root .cg-recent-course {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	unicode-bidi: isolate;
+	color: var(--cg-text-2);
+}
+
+.cg-root .cg-recent-score {
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	text-align: right;
+	white-space: nowrap;
+	color: var(--cg-text);
+}
+
+.cg-root .cg-marker {
+	white-space: nowrap;
+	color: var(--cg-text-2);
+}
+
+.cg-root .cg-marker-late {
+	color: var(--cg-warn);
+}
+
+/* Stale: content dims, the footer note stays at full strength. */
+.cg-root.cg-stale .cg-student {
+	opacity: 0.6;
+}
+
+.cg-root .cg-footer {
+	margin-top: 0.6em;
+	padding-top: 0.4em;
+	border-top: 1px solid var(--cg-border);
+	color: var(--cg-text-2);
+}
+
+.cg-root .cg-footer-stale {
+	color: var(--cg-warn);
+}

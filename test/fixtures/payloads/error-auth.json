@@ -1,0 +1,15 @@
+{
+  "instanceId": "__INSTANCE__",
+  "status": "error",
+  "error": {
+    "kind": "auth",
+    "terminal": true,
+    "detail": null
+  },
+  "fetchedAt": null,
+  "staleAfterMs": 3900000,
+  "partial": false,
+  "paused": false,
+  "multiStudent": false,
+  "students": []
+}

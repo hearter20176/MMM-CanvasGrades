@@ -1,0 +1,98 @@
+[
+  {
+    "id": "1001",
+    "name": "Algebra I",
+    "course_code": "ALGEBRA-I",
+    "workflow_state": "available",
+    "hide_final_grades": false,
+    "access_restricted_by_date": false,
+    "term": {
+      "id": "801",
+      "name": "Fall 2026"
+    },
+    "enrollments": [
+      {
+        "type": "student",
+        "role": "StudentEnrollment",
+        "user_id": "2002",
+        "enrollment_state": "active",
+        "computed_current_score": 88,
+        "computed_final_score": 85,
+        "computed_current_grade": "B+",
+        "computed_final_grade": "B"
+      }
+    ]
+  },
+  {
+    "id": "1002",
+    "name": "Biology",
+    "course_code": "BIOLOGY",
+    "workflow_state": "available",
+    "hide_final_grades": false,
+    "access_restricted_by_date": false,
+    "term": {
+      "id": "801",
+      "name": "Fall 2026"
+    },
+    "enrollments": [
+      {
+        "type": "student",
+        "role": "StudentEnrollment",
+        "user_id": "2002",
+        "enrollment_state": "active",
+        "computed_current_score": 95.25,
+        "computed_final_score": 94,
+        "computed_current_grade": "A",
+        "computed_final_grade": "A"
+      }
+    ]
+  },
+  {
+    "id": "1003",
+    "name": "World History",
+    "course_code": "WORLD-HISTORY",
+    "workflow_state": "available",
+    "hide_final_grades": false,
+    "access_restricted_by_date": false,
+    "term": {
+      "id": "801",
+      "name": "Fall 2026"
+    },
+    "enrollments": [
+      {
+        "type": "student",
+        "role": "StudentEnrollment",
+        "user_id": "2002",
+        "enrollment_state": "active",
+        "computed_current_score": 72,
+        "computed_final_score": 70,
+        "computed_current_grade": "C-",
+        "computed_final_grade": "C-"
+      }
+    ]
+  },
+  {
+    "id": "1004",
+    "name": "English 9",
+    "course_code": "ENGLISH-9",
+    "workflow_state": "available",
+    "hide_final_grades": false,
+    "access_restricted_by_date": false,
+    "term": {
+      "id": "801",
+      "name": "Fall 2026"
+    },
+    "enrollments": [
+      {
+        "type": "student",
+        "role": "StudentEnrollment",
+        "user_id": "2002",
+        "enrollment_state": "active",
+        "computed_current_score": 90,
+        "computed_final_score": 90,
+        "computed_current_grade": "A-",
+        "computed_final_grade": "A-"
+      }
+    ]
+  }
+]

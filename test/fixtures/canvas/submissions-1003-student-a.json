@@ -1,0 +1,62 @@
+[
+  {
+    "id": "95006",
+    "assignment_id": "5006",
+    "user_id": "2001",
+    "workflow_state": "graded",
+    "score": null,
+    "grade": null,
+    "entered_score": null,
+    "entered_grade": null,
+    "missing": false,
+    "late": false,
+    "excused": false,
+    "submitted_at": "2026-10-03T02:00:00Z",
+    "graded_at": "2026-10-05T10:00:00Z",
+    "posted_at": null,
+    "late_policy_status": null,
+    "seconds_late": 0,
+    "cached_due_date": "2026-10-03T04:59:00Z",
+    "assignment": {
+      "id": "5006",
+      "course_id": "1003",
+      "name": "Essay Draft",
+      "due_at": "2026-10-03T04:59:00Z",
+      "points_possible": 25,
+      "grading_type": "points",
+      "submission_types": ["online_upload"],
+      "published": true,
+      "locked_for_user": false
+    }
+  },
+  {
+    "id": "95007",
+    "assignment_id": "5007",
+    "user_id": "2001",
+    "workflow_state": "unsubmitted",
+    "score": null,
+    "grade": null,
+    "entered_score": null,
+    "entered_grade": null,
+    "missing": false,
+    "late": false,
+    "excused": false,
+    "submitted_at": null,
+    "graded_at": null,
+    "posted_at": null,
+    "late_policy_status": null,
+    "seconds_late": 0,
+    "cached_due_date": "2026-10-10T04:59:00Z",
+    "assignment": {
+      "id": "5007",
+      "course_id": "1003",
+      "name": "Reading Response",
+      "due_at": "2026-10-10T04:59:00Z",
+      "points_possible": 5,
+      "grading_type": "points",
+      "submission_types": ["online_upload"],
+      "published": true,
+      "locked_for_user": false
+    }
+  }
+]

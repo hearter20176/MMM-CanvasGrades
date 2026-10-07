@@ -1,0 +1,59 @@
+[
+  {
+    "id": "1001",
+    "name": "Algebra I",
+    "workflow_state": "available",
+    "enrollments": [
+      {
+        "type": "observer",
+        "role": "ObserverEnrollment",
+        "associated_user_id": "2001"
+      }
+    ],
+    "observed_users": [
+      {
+        "id": "2001",
+        "name": "Student A",
+        "short_name": "Student A"
+      }
+    ]
+  },
+  {
+    "id": "1002",
+    "name": "Biology",
+    "workflow_state": "available",
+    "enrollments": [
+      {
+        "type": "observer",
+        "role": "ObserverEnrollment",
+        "associated_user_id": "2002"
+      }
+    ],
+    "observed_users": [
+      {
+        "id": "2002",
+        "name": "Student B",
+        "short_name": "Student B"
+      }
+    ]
+  },
+  {
+    "id": "1003",
+    "name": "World History",
+    "workflow_state": "available",
+    "enrollments": [
+      {
+        "type": "observer",
+        "role": "ObserverEnrollment",
+        "associated_user_id": "2001"
+      }
+    ],
+    "observed_users": [
+      {
+        "id": "2001",
+        "name": "Student A",
+        "short_name": "Student A"
+      }
+    ]
+  }
+]

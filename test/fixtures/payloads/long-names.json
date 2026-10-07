@@ -1,0 +1,118 @@
+{
+  "instanceId": "__INSTANCE__",
+  "status": "ok",
+  "error": null,
+  "fetchedAt": 1791302100000,
+  "staleAfterMs": 3900000,
+  "partial": false,
+  "paused": false,
+  "multiStudent": true,
+  "students": [
+    {
+      "label": "Student A 👩‍👩‍👧‍👦",
+      "notice": null,
+      "courses": [
+        {
+          "name": "A very long course name that was not truncated by helper A very long course name that was not truncated by helper A very long course name that was not truncated by helper A very long course name that was not truncated by helper",
+          "gradeText": "A",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 1,
+          "failed": false
+        },
+        {
+          "name": "مادة الرياضيات المتقدمة",
+          "gradeText": "92%",
+          "gradeKind": "percent",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "Art 🎨 Studio",
+          "gradeText": "B+",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        }
+      ],
+      "missing": [
+        {
+          "name": "Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay Essay",
+          "course": "English 9",
+          "dueAt": "2026-10-01T23:59:00Z",
+          "pointsText": "100 pts",
+          "inferred": false
+        },
+        {
+          "name": "واجب منزلي طويل 📝",
+          "course": "مادة",
+          "dueAt": null,
+          "pointsText": "",
+          "inferred": true
+        }
+      ],
+      "missingTotal": 2,
+      "recent": []
+    },
+    {
+      "label": "Student B",
+      "notice": null,
+      "courses": [
+        {
+          "name": "Algebra I",
+          "gradeText": "B",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "Biology",
+          "gradeText": "A",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "World History",
+          "gradeText": "88.5%",
+          "gradeKind": "percent",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        },
+        {
+          "name": "English 9",
+          "gradeText": "A-",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false
+        }
+      ],
+      "missing": [],
+      "missingTotal": 0,
+      "recent": [
+        {
+          "name": "Quiz 2",
+          "course": "Biology",
+          "scoreText": "EX",
+          "late": false,
+          "excused": true,
+          "hidden": false,
+          "gradedAt": "2026-10-04T14:00:00Z"
+        }
+      ]
+    }
+  ]
+}
