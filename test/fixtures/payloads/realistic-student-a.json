@@ -1,0 +1,121 @@
+{
+  "instanceId": "__INSTANCE__",
+  "status": "ok",
+  "error": null,
+  "fetchedAt": 1791302100000,
+  "staleAfterMs": 3900000,
+  "partial": false,
+  "paused": false,
+  "multiStudent": false,
+  "studentsNotFound": 0,
+  "students": [
+    {
+      "label": "Student A",
+      "notice": null,
+      "courses": [
+        {
+          "name": "Geometry",
+          "gradeText": "A-",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "bx bx-calculator",
+          "color": "#f59e0b"
+        },
+        {
+          "name": "English 9",
+          "gradeText": "B+",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-book",
+          "color": "#a78bfa"
+        },
+        {
+          "name": "Biology",
+          "gradeText": "A",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-dna",
+          "color": "#1569a0"
+        },
+        {
+          "name": "World History",
+          "gradeText": "92%",
+          "gradeKind": "percent",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "iconoir-globe",
+          "color": "#34d399"
+        },
+        {
+          "name": "Spanish I",
+          "gradeText": "A",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-language",
+          "color": "#f472b6"
+        },
+        {
+          "name": "Art Foundations",
+          "gradeText": "A",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-palette",
+          "color": "#fb923c"
+        },
+        {
+          "name": "Physical Education",
+          "gradeText": "A",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-person-running",
+          "color": "#2dd4bf"
+        },
+        {
+          "name": "Concert Band",
+          "gradeText": "A",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-music",
+          "color": "#e879f9"
+        },
+        {
+          "name": "Health",
+          "gradeText": "--",
+          "gradeKind": "none",
+          "hidden": true,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-heart-pulse",
+          "color": "#fb7185"
+        }
+      ],
+      "missing": [],
+      "missingTotal": 0,
+      "recent": []
+    }
+  ]
+}

@@ -1,0 +1,171 @@
+{
+  "instanceId": "__INSTANCE__",
+  "status": "ok",
+  "error": null,
+  "fetchedAt": 1791302100000,
+  "staleAfterMs": 3900000,
+  "partial": false,
+  "paused": false,
+  "multiStudent": false,
+  "studentsNotFound": 0,
+  "students": [
+    {
+      "label": "Student B",
+      "notice": null,
+      "courses": [
+        {
+          "name": "Algebra I",
+          "gradeText": "B+",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "bx bx-calculator",
+          "color": "#f59e0b"
+        },
+        {
+          "name": "English 9",
+          "gradeText": "A-",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 1,
+          "failed": false,
+          "icon": "fas fa-book",
+          "color": "#a78bfa"
+        },
+        {
+          "name": "Biology",
+          "gradeText": "91.4%",
+          "gradeKind": "percent",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-dna",
+          "color": "#1569a0"
+        },
+        {
+          "name": "World History",
+          "gradeText": "B",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 2,
+          "failed": false,
+          "icon": "iconoir-globe",
+          "color": "#34d399"
+        },
+        {
+          "name": "Spanish I",
+          "gradeText": "A",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-language",
+          "color": "#f472b6"
+        },
+        {
+          "name": "Art Foundations",
+          "gradeText": "A",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-palette",
+          "color": "#fb923c"
+        },
+        {
+          "name": "Physical Education",
+          "gradeText": "A",
+          "gradeKind": "letter",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-person-running",
+          "color": "#2dd4bf"
+        },
+        {
+          "name": "Computer Science",
+          "gradeText": "88%",
+          "gradeKind": "percent",
+          "hidden": false,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-laptop-code",
+          "color": "#38bdf8"
+        },
+        {
+          "name": "Concert Band",
+          "gradeText": "--",
+          "gradeKind": "none",
+          "hidden": true,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-music",
+          "color": "#e879f9"
+        },
+        {
+          "name": "Health",
+          "gradeText": "--",
+          "gradeKind": "none",
+          "hidden": true,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": "fas fa-heart-pulse",
+          "color": "#fb7185"
+        },
+        {
+          "name": "Study Skills",
+          "gradeText": "--",
+          "gradeKind": "none",
+          "hidden": true,
+          "periodFallback": false,
+          "missingCount": 0,
+          "failed": false,
+          "icon": null,
+          "color": null
+        }
+      ],
+      "missing": [
+        {
+          "name": "Section Review 2.2 - The New England Colonies (p. 34)",
+          "course": "World History",
+          "dueAt": "2026-10-02T23:59:00Z",
+          "pointsText": "20 pts",
+          "inferred": false,
+          "icon": "iconoir-globe",
+          "color": "#34d399"
+        },
+        {
+          "name": "Primary Source Analysis: The Mayflower Compact (Worksheet 4)",
+          "course": "World History",
+          "dueAt": "2026-10-04T23:59:00Z",
+          "pointsText": "15 pts",
+          "inferred": false,
+          "icon": "iconoir-globe",
+          "color": "#34d399"
+        },
+        {
+          "name": "Chapter 6 Vocabulary Quiz - Characters and Setting",
+          "course": "English 9",
+          "dueAt": "2026-10-05T22:00:00Z",
+          "pointsText": "10 pts",
+          "inferred": true,
+          "icon": "fas fa-book",
+          "color": "#a78bfa"
+        }
+      ],
+      "missingTotal": 3,
+      "recent": []
+    }
+  ]
+}

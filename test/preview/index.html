@@ -24,11 +24,11 @@
 				align-items: flex-start;
 				width: 1080px;
 				box-sizing: border-box;
-				padding: 60px; /* MagicMirror stock page margins */
+				padding: 18px; /* body gutter measured on the real mirror (config page 2) */
 				background: #000;
 			}
 			.region .module {
-				width: 465px;
+				width: 350px;
 			}
 			.region .module.cg-wide {
 				width: 960px;
@@ -56,6 +56,8 @@
 				</div>
 			</div>
 		</div>
+		<!-- Read by headless dump-dom: JSON with card width, height and bottom edge in px -->
+		<pre id="metrics" hidden></pre>
 		<script src="./preview.js"></script>
 		<script src="../../MMM-CanvasGrades.js"></script>
 		<script>

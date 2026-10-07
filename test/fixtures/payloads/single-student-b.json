@@ -19,7 +19,9 @@
           "hidden": false,
           "periodFallback": false,
           "missingCount": 0,
-          "failed": false
+          "failed": false,
+          "icon": "bx bx-calculator",
+          "color": "#f59e0b"
         },
         {
           "name": "Biology",
@@ -28,7 +30,9 @@
           "hidden": false,
           "periodFallback": false,
           "missingCount": 0,
-          "failed": false
+          "failed": false,
+          "icon": "fas fa-dna",
+          "color": "#1569a0"
         },
         {
           "name": "World History",
@@ -37,7 +41,9 @@
           "hidden": false,
           "periodFallback": false,
           "missingCount": 0,
-          "failed": false
+          "failed": false,
+          "icon": "iconoir-globe",
+          "color": "#34d399"
         },
         {
           "name": "English 9",
@@ -46,7 +52,9 @@
           "hidden": false,
           "periodFallback": false,
           "missingCount": 1,
-          "failed": false
+          "failed": false,
+          "icon": "fas fa-book",
+          "color": "#a78bfa"
         }
       ],
       "missing": [
@@ -55,7 +63,9 @@
           "course": "English 9",
           "dueAt": "2026-10-04T23:59:00Z",
           "pointsText": "15 pts",
-          "inferred": false
+          "inferred": false,
+          "icon": "fas fa-book",
+          "color": "#a78bfa"
         }
       ],
       "missingTotal": 1,

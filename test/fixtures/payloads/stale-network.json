@@ -23,7 +23,9 @@
           "hidden": false,
           "periodFallback": false,
           "missingCount": 1,
-          "failed": false
+          "failed": false,
+          "icon": "bx bx-calculator",
+          "color": "#f59e0b"
         },
         {
           "name": "Biology",
@@ -32,7 +34,9 @@
           "hidden": false,
           "periodFallback": false,
           "missingCount": 2,
-          "failed": false
+          "failed": false,
+          "icon": "fas fa-dna",
+          "color": "#1569a0"
         },
         {
           "name": "World History",
@@ -41,7 +45,9 @@
           "hidden": true,
           "periodFallback": false,
           "missingCount": 0,
-          "failed": false
+          "failed": false,
+          "icon": "iconoir-globe",
+          "color": "#34d399"
         },
         {
           "name": "English 9",
@@ -50,7 +56,9 @@
           "hidden": false,
           "periodFallback": true,
           "missingCount": 2,
-          "failed": false
+          "failed": false,
+          "icon": "fas fa-book",
+          "color": "#a78bfa"
         }
       ],
       "missing": [
@@ -59,21 +67,27 @@
           "course": "Biology",
           "dueAt": "2026-09-28T23:59:00Z",
           "pointsText": "20 pts",
-          "inferred": false
+          "inferred": false,
+          "icon": "fas fa-dna",
+          "color": "#1569a0"
         },
         {
           "name": "Lab Report: Cell Structure",
           "course": "Biology",
           "dueAt": "2026-10-02T23:59:00Z",
           "pointsText": "50 pts",
-          "inferred": false
+          "inferred": false,
+          "icon": "fas fa-dna",
+          "color": "#1569a0"
         },
         {
           "name": "Linear Equations Worksheet",
           "course": "Algebra I",
           "dueAt": "2026-10-05T22:00:00Z",
           "pointsText": "10 pts",
-          "inferred": true
+          "inferred": true,
+          "icon": "bx bx-calculator",
+          "color": "#f59e0b"
         }
       ],
       "missingTotal": 5,
@@ -85,7 +99,9 @@
           "late": false,
           "excused": false,
           "hidden": false,
-          "gradedAt": "2026-10-05T14:00:00Z"
+          "gradedAt": "2026-10-05T14:00:00Z",
+          "icon": "bx bx-calculator",
+          "color": "#f59e0b"
         },
         {
           "name": "Reading Journal 6",
@@ -94,7 +110,9 @@
           "late": true,
           "excused": false,
           "hidden": false,
-          "gradedAt": "2026-10-03T14:00:00Z"
+          "gradedAt": "2026-10-03T14:00:00Z",
+          "icon": "fas fa-book",
+          "color": "#a78bfa"
         },
         {
           "name": "Map Project",
@@ -103,7 +121,9 @@
           "late": false,
           "excused": false,
           "hidden": true,
-          "gradedAt": "2026-10-02T14:00:00Z"
+          "gradedAt": "2026-10-02T14:00:00Z",
+          "icon": "iconoir-globe",
+          "color": "#34d399"
         }
       ]
     },
@@ -118,7 +138,9 @@
           "hidden": false,
           "periodFallback": false,
           "missingCount": 0,
-          "failed": false
+          "failed": false,
+          "icon": "bx bx-calculator",
+          "color": "#f59e0b"
         },
         {
           "name": "Biology",
@@ -127,7 +149,9 @@
           "hidden": false,
           "periodFallback": false,
           "missingCount": 0,
-          "failed": false
+          "failed": false,
+          "icon": "fas fa-dna",
+          "color": "#1569a0"
         },
         {
           "name": "World History",
@@ -136,7 +160,9 @@
           "hidden": false,
           "periodFallback": false,
           "missingCount": 0,
-          "failed": false
+          "failed": false,
+          "icon": "iconoir-globe",
+          "color": "#34d399"
         },
         {
           "name": "English 9",
@@ -145,7 +171,9 @@
           "hidden": false,
           "periodFallback": false,
           "missingCount": 0,
-          "failed": false
+          "failed": false,
+          "icon": "fas fa-book",
+          "color": "#a78bfa"
         }
       ],
       "missing": [],
@@ -158,7 +186,9 @@
           "late": false,
           "excused": true,
           "hidden": false,
-          "gradedAt": "2026-10-04T14:00:00Z"
+          "gradedAt": "2026-10-04T14:00:00Z",
+          "icon": "fas fa-dna",
+          "color": "#1569a0"
         }
       ]
     }

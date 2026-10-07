@@ -96,7 +96,7 @@ Add the module to `config.js`. A compact column in a side region:
 },
 ```
 
-One instance per student on one MagicMirror² page, in the two side regions (this uses the MMM-pages `classes` setting; leave `classes` out if you do not use pages). In portrait, each side column is about half of the 1080 px screen, so both use the compact layout, whose card is 465 px wide by default (set in px, not rem, so it does not change with MagicMirror²'s 20 px root font size; two cards fit side by side inside MagicMirror²'s stock 60 px page margins, and on a narrower screen the card shrinks to fit). If your page margins are smaller you can widen it, for example `.cg-root { --cg-compact-width: 496px; }` in `css/custom.css`. The IDs are fictional:
+One instance per student on one MagicMirror² page, in the two side regions (this uses the MMM-pages `classes` setting; leave `classes` out if you do not use pages). In portrait, each side column is about half of the 1080 px screen, so both use the compact layout, whose card is 465 px wide by default (set in px, not rem, so it does not change with MagicMirror²'s 20 px root font size; two cards fit side by side inside MagicMirror²'s stock 60 px page margins, and on a narrower screen the card shrinks to fit). If your page margins are smaller you can widen it, for example `.cg-root { --cg-compact-width: 496px; }` in `css/custom.css`. The width is the `compactWidth` option (px, 260 to 700, default 465); a top row that shares the screen width with a centred clock needs about 350 (see [Sizing a top row](#sizing-a-top-row-beside-a-clock)). The IDs are fictional:
 
 ```js
 {
@@ -150,6 +150,7 @@ The "observee" IDs used by `students` are Canvas user IDs. While you are logged 
 | `scoreType`              | `"current"` | `"current"` (ungraded work ignored) or `"final"` (ungraded counts as zero).                                                                                                                                                                                                                                                                                                                                     |
 | `gradingPeriod`          | `"current"` | `"current"` grading period or `"all"` (course total).                                                                                                                                                                                                                                                                                                                                                           |
 | `showCourseGrades`       | `true`      | Show the per-course grade rows.                                                                                                                                                                                                                                                                                                                                                                                 |
+| `hideUngraded`           | `false`     | `true` leaves out a course that has no grade to show (it would read "--") and no missing work. A course with missing work is always kept.                                                                                                                                                                                                                                                                       |
 | `showMissing`            | `true`      | Fetch and show missing work.                                                                                                                                                                                                                                                                                                                                                                                    |
 | `maxMissing`             | `8`         | Most missing rows per student (1 to 30, default 8); the rest show as "+N more". In the compact layout 4 keeps the card short enough to sit beside other side-column modules.                                                                                                                                                                                                                                    |
 | `missingLookbackDays`    | `30`        | Ignore missing work due more than this many days ago. `0` means no limit.                                                                                                                                                                                                                                                                                                                                       |
@@ -158,6 +159,10 @@ The "observee" IDs used by `students` are Canvas user IDs. While you are logged 
 | `recentGradesDays`       | `7`         | Only grades posted within this many days.                                                                                                                                                                                                                                                                                                                                                                       |
 | `assignmentScoreDisplay` | `"auto"`    | `"auto"` (follow each assignment's grading type), `"points"`, `"percent"` or `"letter"`.                                                                                                                                                                                                                                                                                                                        |
 | `layout`                 | `"full"`    | `"full"` for wide regions, `"compact"` for side columns (a 465 px card). Both layouts list the missing assignments by name; full adds recent grades.                                                                                                                                                                                                                                                            |
+| `compactWidth`           | `465`       | Width in px (260 to 700) of the compact card. The default fits two cards side by side on a 1080 px portrait screen. A top row that shares the width with a centred clock needs about `350`; see [Sizing a top row](#sizing-a-top-row-beside-a-clock).                                                                                                                                                           |
+| `subjectNameColor`       | `false`     | `true` also colours the course name text with the subject colour. Off by default, because MMM-MyAgenda's colours are tuned for icons: a dark one such as `#1569a0` is nearly unreadable as text on the night theme (contrast about 1.08:1).                                                                                                                                                                     |
+| `subjectIcons`           | `{}`        | Icon per subject, in the same shape as MMM-MyAgenda's `iconMapping`. See [Matching MMM-MyAgenda subject icons and colours](#matching-mmm-myagenda-subject-icons-and-colours).                                                                                                                                                                                                                                   |
+| `subjectColors`          | `{}`        | Colour per subject, in the same shape as MMM-MyAgenda's `keywordColors`. It colours the subject icon and a thin left border. See the same section.                                                                                                                                                                                                                                                              |
 | `warningAnimation`       | `"lottie"`  | The warning mark beside a student's missing list: `"lottie"` (animated Meteocons icon), `"css"` (a slow CSS pulse of the warning icon) or `"none"`. `"css"` is also the automatic fallback when Lottie cannot load or motion is reduced.                                                                                                                                                                        |
 | `warningLoop`            | `"loop"`    | `"loop"` plays continuously; `"once"` plays 3 times in total (the first play plus 2 loops) when the mark appears and whenever the data changes, then rests on the last frame. The option also applies to the CSS fallback: under `"once"` the pulse runs 3 iterations and then rests (class `cg-warn-once`). A suspended or hidden module pauses the pulse as well as the Lottie player (class `cg-suspended`). |
 | `reduceMotion`           | `false`     | `true` forces the low-motion behaviour (no Lottie player, no pulse). The system "reduce motion" setting is honoured automatically.                                                                                                                                                                                                                                                                              |
@@ -171,7 +176,71 @@ The "observee" IDs used by `students` are Canvas user IDs. While you are logged 
 | `timeFormat`             | `12`        | `12` or `24`, for due times.                                                                                                                                                                                                                                                                                                                                                                                    |
 | `animationSpeed`         | `1000`      | Fade time in milliseconds when the display updates.                                                                                                                                                                                                                                                                                                                                                             |
 
-Unknown values of the options the helper reads fall back to the default and a warning is written to the MagicMirror² log. The display-only options (`layout`, `showStudentName`, `timeFormat`, `errorGraceSeconds`, `animationSpeed`, `warningAnimation`, `warningLoop`, `reduceMotion`) fall back to their defaults silently.
+Unknown values of the options the helper reads fall back to the default and a warning is written to the MagicMirror² log. The display-only options (`layout`, `showStudentName`, `timeFormat`, `errorGraceSeconds`, `animationSpeed`, `warningAnimation`, `warningLoop`, `reduceMotion`, `compactWidth`, `subjectNameColor`) fall back to their defaults silently.
+
+## Matching MMM-MyAgenda subject icons and colours
+
+Each course can show the same icon and colour that [MMM-MyAgenda](https://github.com/hearter20176/MMM-MyAgenda) uses for the same subject, so a subject looks the same on every page. Like MMM-MyAgenda, the colour is applied to the icon glyph and to a 4 px border on the left of the row; the title stays in the neutral text colour. Copy the two maps from your MMM-MyAgenda config (the example is fictional):
+
+```js
+{
+  module: "MMM-CanvasGrades",
+  position: "top_left",
+  config: {
+    canvasUrl: "https://canvas.example.edu",
+    accessTokenFile: "config/canvas-token",
+    layout: "compact",
+    maxMissing: 4,
+    subjectIcons: {
+      Science: "fas fa-dna",
+      Math: "bx bx-calculator",
+      English: "fa-solid fa-book",
+      History: "iconoir-globe",
+      Music: "fa-solid fa-music",
+    },
+    subjectColors: {
+      Science: "#1569a0",
+      Math: "#c2410c",
+      English: "#7c3aed",
+      History: "#15803d",
+      Music: "#be185d",
+    },
+  },
+},
+```
+
+The rules are the ones MMM-MyAgenda follows:
+
+- The match is against the course name as Canvas has it (before `courseLabels` or shortening), lower-cased, so `Science` also matches "AP SCIENCE 8".
+- Each key is a substring match, tried in the order the keys are written, and the first key that matches wins. Put the specific key before the general one: `"Art History"` must come before `Art`.
+- The icon and the colour are looked up separately, each by first match. The icon is the value of the first key of `subjectIcons` that matches. The colour is the value of the first key of `subjectColors`, in its own order, that matches; it does not have to be the same key as the icon, and a key that is only in `subjectColors` (no icon) works on its own. MMM-MyAgenda behaves the same way (its loop over `keywordColors` overrides the colour found under the icon key).
+- "First" follows JavaScript property order: keys that look like whole numbers (such as `"101"`) come first, in ascending order, and every other key follows in the order you wrote it. Keys are only lower-cased, never trimmed, so `" Art "` (with spaces) matches only where those spaces appear.
+- A course that matches nothing gets the module's default icon and colour. The missing and recent-grade lines show the icon and colour of their course.
+- The keys never reach the browser; only the chosen icon classes and colour do.
+
+Values are checked because they end up in the page. An icon must be a plain class list (letters, digits, spaces, `-` and `_`, up to 64 characters); Font Awesome animation classes (`fa-spin`, `fa-spin-pulse`, `fa-spin-reverse`, `fa-beat`, `fa-beat-fade`, `fa-bounce`, `fa-fade`, `fa-flip`, `fa-shake`, `fa-pulse`) are removed from it so a subject icon never animates. A colour must be `#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`, a simple `rgb()`, `rgba()`, `hsl()` or `hsla()` (a `deg` unit on the hue is fine), or a plain colour name such as `teal` (not `inherit`, `initial`, `unset`, `revert`, `transparent` or `currentColor`). An invalid entry is dropped, and one warning per option is written to the MagicMirror² log (with counts, never the values).
+
+Font Awesome icons (`fas fa-...`, `fa-solid fa-...`) always render, because MagicMirror² loads Font Awesome. Boxicons (`bx bx-...`) and Iconoir (`iconoir-...`) classes only render if some module on the page loads those icon fonts (MMM-MyAgenda does). Without them the space stays empty.
+
+Colours are shown exactly as configured, so they match MMM-MyAgenda. The icon and the left border always use the exact colour. If you turn on `subjectNameColor` and a colour is hard to read as text, lower the CSS variable `--cg-subject-strength` (default `100%`), for example `.cg-root { --cg-subject-strength: 72%; }` in `css/custom.css`; it mixes the text colour toward white at night and toward black by day. Empty keys and keys longer than 80 characters are ignored (MMM-MyAgenda would treat an empty key as matching every title).
+
+The front-end option `subjectNameColor` (default `false`) also colours the course name text. The CSS variable `--cg-subject-strength`, which you can set in `css/custom.css`, controls how strongly the subject colour is mixed toward white (night) or black (day) when it is used as text, for example `.cg-root { --cg-subject-strength: 70%; }`. It does not change the icon or the left border.
+
+Set `hideUngraded: true` to drop courses that have no grade yet and no missing work, which shortens the card.
+
+## Sizing a top row beside a clock
+
+A card in `top_left` or `top_right` beside a centred clock has about 350 px of width, and if a dashboard sits below it the card has roughly 480 px of height before it overlaps. For that spot use `compactWidth: 350` together with `hideUngraded: true` and `maxMissing: 3` (or 4 only together with `hideUngraded`).
+
+Measured heights at 350 px wide, with a 20 px root font size (MagicMirror²'s default):
+
+| Content                                  | Height                              |
+| ---------------------------------------- | ----------------------------------- |
+| 9 courses, nothing missing               | 242 px                              |
+| 11 courses (3 ungraded), 3 missing items | 456 px                              |
+| 4 missing items and "+2 more"            | 529 px (467 px with `hideUngraded`) |
+
+Budget about 480 px above a dashboard.
 
 ## Placement
 

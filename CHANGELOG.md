@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-07
+
+### Added
+
+- Subject icons and colours that match MMM-MyAgenda: new options `subjectIcons` and `subjectColors` (same shape as MyAgenda's `iconMapping` and `keywordColors`), matched against the Canvas course name with MyAgenda's first-key-in-order substring rule. Colour-only keys are supported. Values are validated and invalid entries dropped with a warning. Course, missing and recent entries carry `icon` and `color` (or null); the keys are never sent to the browser.
+- `hideUngraded` option: omit a course with no grade to show and no missing work (a course with missing work is always kept).
+- `compactWidth` option (px, 260 to 700, default 465) for the compact card width; about 350 fits a top row beside a centred clock.
+- README section on matching MMM-MyAgenda subject icons and colours.
+- Front-end option `subjectNameColor` (default `false`) to also colour the course name, and the `--cg-subject-strength` CSS variable.
+- README guidance for sizing a top row beside a clock, with measured heights.
+
+### Changed
+
+- Subject colour matching now follows MMM-MyAgenda exactly: the colour is the first matching key of `subjectColors` in its own order, independent of the icon key. Keys are no longer trimmed, and JavaScript key order (whole-number keys first) is documented.
+- Font Awesome animation classes are removed from subject icons, and `hsl()` colours may use a `deg` hue unit, matching the front end.
+
 ## [1.1.0] - 2026-10-06
 
 ### Added
@@ -34,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit tests on Node's built-in test runner with a mocked `fetch`, fictional fixtures only, and a repository privacy scan.
 - ESLint (flat config), Prettier, markdownlint and stylelint, a GitHub Actions workflow and a Dependabot configuration.
 
-[Unreleased]: https://github.com/hearter20176/MMM-CanvasGrades/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/hearter20176/MMM-CanvasGrades/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/hearter20176/MMM-CanvasGrades/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/hearter20176/MMM-CanvasGrades/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/hearter20176/MMM-CanvasGrades/releases/tag/v1.0.0

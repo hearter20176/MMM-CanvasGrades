@@ -1,6 +1,6 @@
 {
   "name": "mmm-canvasgrades",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "MagicMirror² module that shows a Canvas LMS observer's students' course grades and missing assignments.",
   "keywords": [
     "MagicMirror",

@@ -22,7 +22,7 @@ describe("normalizeConfig", () => {
 		const { cfg, warnings } = normalizeConfig({ ...base });
 		assert.deepEqual(warnings, []);
 		for (const key of Object.keys(DEFAULTS)) {
-			if (["canvasUrl", "accessToken", "staleAfter"].includes(key)) continue;
+			if (["canvasUrl", "accessToken", "staleAfter", "subjectIcons", "subjectColors"].includes(key)) continue;
 			assert.deepEqual(cfg[key], DEFAULTS[key], key);
 		}
 		assert.equal(cfg.staleAfter, 2 * 1800000 + 300000);

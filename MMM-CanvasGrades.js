@@ -38,6 +38,28 @@ var CANVASGRADES_STALE_SUFFIX = {
 	throttled: " - rate limited",
 	auth: " - token rejected"
 };
+// Subject styling arrives from the helper but is re-validated here because the values reach the
+// DOM (class list and an inline custom property).
+var CANVASGRADES_ICON_RE = /^[A-Za-z0-9 _-]{1,64}$/;
+var CANVASGRADES_HEX_RE = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+var CANVASGRADES_FUNC_RE = /^(?:rgb|hsl)a?\(\s*[\d.]+(?:deg)?%?(?:\s*[,\s/]\s*[\d.]+%?){2,3}\s*\)$/i;
+var CANVASGRADES_NAME_RE = /^[a-z]{3,20}$/i;
+var CANVASGRADES_NOT_COLORS = ["inherit", "initial", "unset", "revert", "transparent", "currentcolor"];
+// Font Awesome animation helpers: never let payload data start an infinite animation.
+var CANVASGRADES_ICON_ANIMATIONS = [
+	"fa-spin",
+	"fa-spin-pulse",
+	"fa-spin-reverse",
+	"fa-beat",
+	"fa-beat-fade",
+	"fa-bounce",
+	"fa-fade",
+	"fa-flip",
+	"fa-shake",
+	"fa-pulse"
+];
+var CANVASGRADES_FALLBACK_ICON = "fa-regular fa-calendar";
+var CANVASGRADES_FALLBACK_COLOR = "#9ca3af";
 var CANVASGRADES_GRADE_KINDS = ["letter", "percent", "both", "none"];
 var CANVASGRADES_DEFAULT_STALE_MS = 2 * 1800000 + 300000;
 
@@ -84,6 +106,11 @@ Module.register("MMM-CanvasGrades", {
 		// Browser locale when empty
 		locale: "",
 		animationSpeed: 1000,
+		// false (MyAgenda style): the subject colour marks the icon and a left border only;
+		// true also colours the course label text (adds cg-subject-name-color on the root)
+		subjectNameColor: false,
+		// Width of the compact card in px (260..700); the CSS reads --cg-compact-width
+		compactWidth: 465,
 		// Warning graphic beside the missing list: "lottie" (animated, falls back to "css" when
 		// Lottie is unavailable), "css" (pulsing icon), or "none"
 		warningAnimation: "lottie",
@@ -99,7 +126,12 @@ Module.register("MMM-CanvasGrades", {
 		requestTimeout: 20000,
 		staleAfter: 0,
 		pauseBetween: null,
-		cache: false
+		cache: false,
+
+		// --- Subject styling (read by node_helper only; the payload carries the result) ---
+		subjectIcons: {},
+		subjectColors: {},
+		hideUngraded: false
 	},
 
 	MAX_TEXT: 160,
@@ -317,6 +349,32 @@ Module.register("MMM-CanvasGrades", {
 		return value.length > max ? value.slice(0, max) : value;
 	},
 
+	// Icon class list from the payload, or null when absent or not a plain class list.
+	_iconClass(value) {
+		if (typeof value !== "string") return null;
+		var v = value.trim();
+		if (!CANVASGRADES_ICON_RE.test(v)) return null;
+		var kept = v.split(/\s+/).filter(function (token) {
+			return CANVASGRADES_ICON_ANIMATIONS.indexOf(token.toLowerCase()) === -1;
+		});
+		return kept.length ? kept.join(" ") : null;
+	},
+
+	// Colour from the payload (hex, rgb()/hsl() simple forms, or a plain colour name), else null.
+	_color(value) {
+		if (typeof value !== "string") return null;
+		var v = value.trim();
+		if (CANVASGRADES_HEX_RE.test(v) || CANVASGRADES_FUNC_RE.test(v)) return v;
+		if (CANVASGRADES_NAME_RE.test(v) && CANVASGRADES_NOT_COLORS.indexOf(v.toLowerCase()) === -1) return v;
+		return null;
+	},
+
+	_compactWidth() {
+		var n = Number(this.config.compactWidth);
+		if (this.config.compactWidth === null || this.config.compactWidth === "" || !isFinite(n)) return 465;
+		return Math.min(700, Math.max(260, Math.round(n)));
+	},
+
 	_cleanError(error) {
 		if (!error || typeof error !== "object") return null;
 		var kind = CANVASGRADES_ERROR_KINDS.indexOf(error.kind) !== -1 ? error.kind : "network";
@@ -365,7 +423,9 @@ Module.register("MMM-CanvasGrades", {
 				hidden: c.hidden === true,
 				periodFallback: c.periodFallback === true,
 				missingCount: this._count(c.missingCount),
-				failed: c.failed === true
+				failed: c.failed === true,
+				icon: this._iconClass(c.icon),
+				color: this._color(c.color)
 			});
 		}
 		var missing = [];
@@ -378,7 +438,9 @@ Module.register("MMM-CanvasGrades", {
 				course: this._text(m.course),
 				dueAt: typeof m.dueAt === "string" ? m.dueAt : null,
 				pointsText: this._text(m.pointsText),
-				inferred: m.inferred === true
+				inferred: m.inferred === true,
+				icon: this._iconClass(m.icon),
+				color: this._color(m.color)
 			});
 		}
 		var recent = [];
@@ -392,7 +454,9 @@ Module.register("MMM-CanvasGrades", {
 				scoreText: this._text(r.scoreText) || "--",
 				late: r.late === true,
 				excused: r.excused === true,
-				hidden: r.hidden === true
+				hidden: r.hidden === true,
+				icon: this._iconClass(r.icon),
+				color: this._color(r.color)
 			});
 		}
 		var missingTotal = this._count(s.missingTotal);
@@ -509,6 +573,23 @@ Module.register("MMM-CanvasGrades", {
 		return el;
 	},
 
+	// Inline custom property read by the CSS (font colour of the subject), set through the style API only.
+	_subjectColor(el, color) {
+		el.style.setProperty("--cg-subject", color || CANVASGRADES_FALLBACK_COLOR);
+	},
+
+	_subjectIcon(iconClass) {
+		return this._icon("cg-course-icon " + (iconClass || CANVASGRADES_FALLBACK_ICON));
+	},
+
+	// Secondary-line course label: subject icon plus the name text.
+	_subjectLabel(className, item, text) {
+		var label = this._el("span", className);
+		label.appendChild(this._subjectIcon(item.icon));
+		label.appendChild(this._el("span", "cg-subject-name", text));
+		return label;
+	},
+
 	_icon(classes) {
 		var i = this._el("i", classes);
 		i.setAttribute("aria-hidden", "true");
@@ -534,9 +615,11 @@ Module.register("MMM-CanvasGrades", {
 					(st.stale ? " cg-stale" : "") +
 					(this.reduceMotion ? " cg-reduce-motion" : "") +
 					(this.config.warningLoop === "once" ? " cg-warn-once" : "") +
+					(this.config.subjectNameColor === true ? " cg-subject-name-color" : "") +
 					(this.suspended || this.hidden === true ? " cg-suspended" : "")
 			);
 			this._root = root;
+			root.style.setProperty("--cg-compact-width", this._compactWidth() + "px");
 
 			if (st.name === "loading") {
 				root.appendChild(this._el("div", "cg-status", "Loading grades..."));
@@ -617,9 +700,10 @@ Module.register("MMM-CanvasGrades", {
 		for (var i = 0; i < s.missing.length; i++) {
 			var m = s.missing[i];
 			var item = this._el("div", "cg-missing-item" + (m.inferred ? " cg-missing-inferred" : ""));
+			this._subjectColor(item, m.color);
 			item.appendChild(this._icon("cg-missing-icon fa-solid fa-circle-exclamation"));
 			item.appendChild(this._el("span", "cg-missing-name", m.name));
-			item.appendChild(this._el("span", "cg-missing-course", m.course));
+			item.appendChild(this._subjectLabel("cg-missing-course", m, m.course));
 			var due = this._dueText(m.dueAt, now);
 			if (due) item.appendChild(this._el("span", "cg-missing-due", due));
 			if (m.pointsText) item.appendChild(this._el("span", "cg-missing-points", m.pointsText));
@@ -866,6 +950,8 @@ Module.register("MMM-CanvasGrades", {
 				(c.failed ? " cg-course-failed" : "") +
 				(c.missingCount > 0 ? " cg-course-has-missing" : "");
 			var row = this._el("div", cls);
+			this._subjectColor(row, c.color);
+			row.appendChild(this._subjectIcon(c.icon));
 			row.appendChild(this._el("span", "cg-course-name", c.name));
 			row.appendChild(this._el("span", "cg-course-grade cg-grade-" + c.gradeKind, c.gradeText));
 			if (c.periodFallback) row.appendChild(this._el("span", "cg-period-note", "total"));
@@ -886,8 +972,9 @@ Module.register("MMM-CanvasGrades", {
 		for (var i = 0; i < s.recent.length; i++) {
 			var r = s.recent[i];
 			var item = this._el("div", "cg-recent-item");
+			this._subjectColor(item, r.color);
 			item.appendChild(this._el("span", "cg-recent-name", r.name));
-			item.appendChild(this._el("span", "cg-recent-course", r.course));
+			item.appendChild(this._subjectLabel("cg-recent-course", r, r.course));
 			item.appendChild(this._el("span", "cg-recent-score", r.scoreText));
 			if (r.late) {
 				var late = this._el("span", "cg-marker cg-marker-late");

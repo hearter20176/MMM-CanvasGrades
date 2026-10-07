@@ -118,6 +118,11 @@ test("defaults cover the documented options and styles are declared", () => {
 		"students",
 		"layout",
 		"warningAnimation",
+		"compactWidth",
+		"subjectNameColor",
+		"subjectIcons",
+		"subjectColors",
+		"hideUngraded",
 		"warningLoop",
 		"reduceMotion",
 		"showMissing",
@@ -1135,4 +1140,306 @@ test("cg-warn-once is on the root only for warningLoop once", () => {
 	assert.ok(hasClass(feed(make({ warningLoop: "once" }), payload("ok-two-students")), "cg-warn-once"));
 	assert.ok(!hasClass(feed(make(), payload("ok-two-students")), "cg-warn-once"));
 	assert.ok(!hasClass(feed(make({ warningLoop: "bogus" }), payload("ok-two-students")), "cg-warn-once"));
+});
+
+// ---- Subject icons and colours, compactWidth (v1.2.0) ----
+
+const FALLBACK_ICON = "fa-regular fa-calendar";
+const FALLBACK_COLOR = "#9ca3af";
+const prop = (el, name) => el.style.getPropertyValue(name);
+
+test("defaults for the v1.2 options", () => {
+	assert.equal(spec.defaults.compactWidth, 465);
+	assert.deepEqual(spec.defaults.subjectIcons, {});
+	assert.deepEqual(spec.defaults.subjectColors, {});
+	assert.equal(spec.defaults.hideUngraded, false);
+});
+
+test("course rows get the subject icon and --cg-subject colour from the payload", () => {
+	const m = make();
+	const root = feed(m, payload("ok-two-students"));
+	const a = root.querySelectorAll(".cg-student")[0];
+	const rows = a.querySelectorAll(".cg-course");
+	const algebra = rows[0];
+	const icon = algebra.querySelector(".cg-course-icon");
+	assert.equal(icon.className, "cg-course-icon bx bx-calculator");
+	assert.equal(icon.attributes["aria-hidden"], "true");
+	assert.equal(prop(algebra, "--cg-subject"), "#f59e0b");
+	assert.equal(algebra.children[0], icon, "icon comes before the name");
+	assert.equal(algebra.children[1].className, "cg-course-name");
+	const biology = rows[1];
+	assert.equal(biology.querySelector(".cg-course-icon").className, "cg-course-icon fas fa-dna");
+	assert.equal(prop(biology, "--cg-subject"), "#1569a0");
+});
+
+test("an unmatched subject (null icon and colour) uses the fallback icon and colour", () => {
+	const m = make();
+	const p = payload("single-student");
+	p.students[0].courses[0].icon = null;
+	p.students[0].courses[0].color = null;
+	const row = feed(m, p).querySelector(".cg-course");
+	assert.equal(row.querySelector(".cg-course-icon").className, "cg-course-icon " + FALLBACK_ICON);
+	assert.equal(prop(row, "--cg-subject"), FALLBACK_COLOR);
+});
+
+test("a payload without icon or color fields uses the fallbacks everywhere", () => {
+	const m = make();
+	const p = payload("ok-two-students");
+	for (const s of p.students) {
+		for (const g of [s.courses, s.missing, s.recent]) {
+			for (const it of g) {
+				delete it.icon;
+				delete it.color;
+			}
+		}
+	}
+	const root = feed(m, p);
+	for (const sel of [".cg-course", ".cg-missing-item", ".cg-recent-item"]) {
+		for (const el of root.querySelectorAll(sel)) assert.equal(prop(el, "--cg-subject"), FALLBACK_COLOR, sel);
+	}
+	for (const el of root.querySelectorAll(".cg-course-icon")) {
+		assert.ok(el.className.endsWith(FALLBACK_ICON), el.className);
+	}
+});
+
+test("missing and recent items carry the subject colour and an icon on the course label", () => {
+	const m = make({ layout: "full" });
+	const root = feed(m, payload("ok-two-students"));
+	const item = root.querySelector(".cg-missing-item");
+	assert.equal(prop(item, "--cg-subject"), "#1569a0");
+	const label = item.querySelector(".cg-missing-course");
+	assert.equal(label.children[0].className, "cg-course-icon fas fa-dna");
+	assert.equal(textOf(label), "Biology");
+	assert.equal(textOf(label.querySelector(".cg-subject-name")), "Biology");
+	// the warn accent icon of the item itself is untouched
+	assert.ok(has(item, ".cg-missing-icon.fa-circle-exclamation"));
+	const recent = root.querySelector(".cg-recent-item");
+	assert.equal(prop(recent, "--cg-subject"), "#f59e0b");
+	assert.equal(
+		recent.querySelector(".cg-recent-course .cg-course-icon").className,
+		"cg-course-icon bx bx-calculator"
+	);
+	assert.equal(textOf(recent.querySelector(".cg-recent-course")), "Algebra I");
+});
+
+test("invalid icon classes are dropped to the fallback", () => {
+	const bad = [
+		'fa-solid fa-x" onclick="alert(1)',
+		"fa<b>",
+		"a;b",
+		"x".repeat(65),
+		"",
+		"   ",
+		42,
+		{ a: 1 },
+		["fas fa-dna"],
+		"fas fa-dna\nfa-bomb",
+		"url(x)"
+	];
+	for (const icon of bad) {
+		const m = make();
+		const p = payload("single-student");
+		p.students[0].courses[0].icon = icon;
+		const el = feed(m, p).querySelector(".cg-course .cg-course-icon");
+		assert.equal(el.className, "cg-course-icon " + FALLBACK_ICON, JSON.stringify(icon));
+	}
+	const m = make();
+	const p = payload("single-student");
+	p.students[0].courses[0].icon = "  fas fa-dna  ";
+	assert.equal(feed(m, p).querySelector(".cg-course .cg-course-icon").className, "cg-course-icon fas fa-dna");
+});
+
+test("valid colour forms are applied; everything else falls back", () => {
+	const good = [
+		"#fff",
+		"#ffff",
+		"#1569a0",
+		"#1569a0cc",
+		"rgb(21, 105, 160)",
+		"rgb(21 105 160 / 50%)",
+		"hsl(200, 77%, 35%)",
+		"hsla(200,77%,35%,0.5)",
+		"tomato",
+		"RebeccaPurple"
+	];
+	for (const color of good) {
+		const m = make();
+		const p = payload("single-student");
+		p.students[0].courses[0].color = color;
+		assert.equal(prop(feed(m, p).querySelector(".cg-course"), "--cg-subject"), color, color);
+	}
+	const bad = [
+		"red; background: blue",
+		"url(javascript:alert(1))",
+		"var(--x)",
+		"#12",
+		"#12345",
+		"#ggg",
+		"rgb(1,2)",
+		"rgb(1,2,3,4,5)",
+		"rgb(1,2,3); x",
+		"expression(alert(1))",
+		"inherit",
+		"transparent",
+		"currentColor",
+		"a",
+		"x".repeat(21),
+		"",
+		7,
+		null,
+		{}
+	];
+	for (const color of bad) {
+		const m = make();
+		const p = payload("single-student");
+		p.students[0].courses[0].color = color;
+		assert.equal(
+			prop(feed(m, p).querySelector(".cg-course"), "--cg-subject"),
+			FALLBACK_COLOR,
+			JSON.stringify(color)
+		);
+	}
+});
+
+test("subject styling never lands in innerHTML or in text", () => {
+	const m = make();
+	const p = payload("single-student");
+	p.students[0].courses[0].icon = "<img src=x onerror=alert(1)>";
+	p.students[0].courses[0].color = "<script>";
+	const root = feed(m, p);
+	assert.ok(!has(root, "img") && !has(root, "script"));
+	assert.doesNotMatch(textOf(root), /onerror|<script>/);
+});
+
+test("compactWidth sets --cg-compact-width on the root and is clamped", () => {
+	const cases = [
+		[350, "350px"],
+		[465, "465px"],
+		["350", "350px"],
+		[260, "260px"],
+		[100, "260px"],
+		[0, "260px"],
+		[-5, "260px"],
+		[700, "700px"],
+		[5000, "700px"],
+		[350.6, "351px"],
+		["abc", "465px"],
+		[null, "465px"],
+		["", "465px"],
+		[NaN, "465px"],
+		[Infinity, "465px"],
+		[undefined, "465px"]
+	];
+	for (const [value, expected] of cases) {
+		const m = make({ compactWidth: value });
+		const root = feed(m, payload("single-student"));
+		assert.equal(prop(root, "--cg-compact-width"), expected, String(value));
+	}
+});
+
+test("compactWidth is set on the root in every state", () => {
+	const m = make({ compactWidth: 350 });
+	assert.equal(prop(m.getDom(), "--cg-compact-width"), "350px", "loading");
+	assert.equal(prop(feed(m, payload("error-auth")), "--cg-compact-width"), "350px", "error");
+	assert.equal(prop(feed(m, payload("ok-two-students")), "--cg-compact-width"), "350px", "ok");
+});
+
+test("realistic fixtures: 11 courses with 3 ungraded and 3 long missing names; 9 courses and nothing missing", () => {
+	const m = make({ layout: "compact", compactWidth: 350 });
+	let root = feed(m, payload("realistic-student-b"));
+	assert.equal(count(root, ".cg-course"), 11);
+	assert.equal(count(root, ".cg-course.cg-course-hidden"), 3);
+	assert.deepEqual(textsOf(root, ".cg-course-grade").filter((t) => t === "--").length, 3);
+	assert.equal(count(root, ".cg-missing-item"), 3);
+	assert.ok(textsOf(root, ".cg-missing-name").some((t) => t.length > 50));
+	assert.ok(!has(root, ".cg-clear"));
+	assert.equal(count(root, ".cg-course-icon"), 11 + 3, "11 course icons plus 3 label icons");
+	root = feed(m, payload("realistic-student-a"));
+	assert.equal(count(root, ".cg-course"), 9);
+	assert.ok(has(root, ".cg-clear"));
+	assert.equal(count(root, ".cg-missing-item"), 0);
+});
+
+test("every payload fixture carries icon and color keys on its entries", () => {
+	const dir = path.join(__dirname, "fixtures", "payloads");
+	for (const f of fs.readdirSync(dir)) {
+		const p = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
+		for (const s of p.students || []) {
+			for (const g of [s.courses, s.missing, s.recent]) {
+				for (const it of g || []) {
+					assert.ok("icon" in it && "color" in it, f);
+					assert.ok(it.icon === null || typeof it.icon === "string", f);
+					assert.ok(it.color === null || typeof it.color === "string", f);
+				}
+			}
+		}
+	}
+});
+
+test("animation class tokens are dropped from icon classes, other tokens kept", () => {
+	const anims = [
+		"fa-spin",
+		"fa-spin-pulse",
+		"fa-spin-reverse",
+		"fa-beat",
+		"fa-beat-fade",
+		"fa-bounce",
+		"fa-fade",
+		"fa-flip",
+		"fa-shake",
+		"fa-pulse"
+	];
+	const iconOf = (icon) => {
+		const m = make();
+		const p = payload("single-student");
+		p.students[0].courses[0].icon = icon;
+		return feed(m, p).querySelector(".cg-course .cg-course-icon").className;
+	};
+	for (const a of anims) {
+		assert.equal(iconOf("fas fa-dna " + a), "cg-course-icon fas fa-dna", a);
+		assert.equal(iconOf(a + " fas fa-dna"), "cg-course-icon fas fa-dna", a);
+		assert.equal(iconOf(a.toUpperCase() + " fas fa-dna"), "cg-course-icon fas fa-dna", a + " upper case");
+		assert.equal(iconOf(a), "cg-course-icon " + FALLBACK_ICON, "only an animation token falls back");
+	}
+	assert.equal(
+		iconOf("fas fa-dna fa-spin fa-beat fa-flip-horizontal"),
+		"cg-course-icon fas fa-dna fa-flip-horizontal"
+	);
+	assert.equal(iconOf("fas   fa-dna"), "cg-course-icon fas fa-dna");
+	assert.equal(iconOf("fas fa-spinner"), "cg-course-icon fas fa-spinner", "similar names are not animations");
+});
+
+test("animation tokens are dropped on missing and recent entries too", () => {
+	const m = make({ layout: "full" });
+	const p = payload("ok-two-students");
+	p.students[0].missing[0].icon = "fas fa-dna fa-spin";
+	p.students[0].recent[0].icon = "bx bx-calculator fa-fade";
+	const root = feed(m, p);
+	assert.equal(root.querySelector(".cg-missing-course .cg-course-icon").className, "cg-course-icon fas fa-dna");
+	assert.equal(root.querySelector(".cg-recent-course .cg-course-icon").className, "cg-course-icon bx bx-calculator");
+});
+
+test("subjectNameColor adds cg-subject-name-color only when exactly true", () => {
+	assert.equal(spec.defaults.subjectNameColor, false);
+	const on = (value) =>
+		hasClass(feed(make({ subjectNameColor: value }), payload("ok-two-students")), "cg-subject-name-color");
+	assert.equal(on(true), true);
+	assert.equal(on(false), false);
+	for (const v of ["true", "yes", 1, "1", {}, [], null, undefined]) assert.equal(on(v), false, JSON.stringify(v));
+	assert.equal(hasClass(feed(make(), payload("ok-two-students")), "cg-subject-name-color"), false);
+	assert.equal(
+		hasClass(make({ subjectNameColor: true }).getDom(), "cg-subject-name-color"),
+		true,
+		"also while loading"
+	);
+});
+
+test("realistic-student-b-more: 4 missing shown plus +2 more", () => {
+	const m = make({ layout: "compact", compactWidth: 350 });
+	const root = feed(m, payload("realistic-student-b-more"));
+	assert.equal(count(root, ".cg-missing-item"), 4);
+	assert.deepEqual(textsOf(root, ".cg-more"), ["+2 more"]);
+	assert.equal(count(root, ".cg-course"), 11);
+	assert.equal(count(root, ".cg-course.cg-course-hidden"), 3);
+	assert.deepEqual(textsOf(root, ".cg-badge-count"), ["1", "1", "2", "2"]);
 });

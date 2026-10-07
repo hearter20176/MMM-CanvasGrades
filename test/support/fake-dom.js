@@ -36,6 +36,21 @@ function matchesCompound(el, compound) {
 	return classes.every((c) => el.classList.contains(c));
 }
 
+// Inline style with setProperty/getPropertyValue (custom properties) and plain assignments.
+class FakeStyle {
+	constructor() {
+		Object.defineProperty(this, "props", { value: {}, enumerable: false });
+	}
+
+	setProperty(name, value) {
+		this.props[name] = String(value);
+	}
+
+	getPropertyValue(name) {
+		return Object.prototype.hasOwnProperty.call(this.props, name) ? this.props[name] : "";
+	}
+}
+
 class FakeElement {
 	constructor(tagName) {
 		this.tagName = String(tagName).toUpperCase();
@@ -44,7 +59,7 @@ class FakeElement {
 		this.children = [];
 		this.parent = null;
 		this.isConnected = false;
-		this.style = {};
+		this.style = new FakeStyle();
 		this.attributes = {};
 		this.classList = new FakeClassList(this);
 	}

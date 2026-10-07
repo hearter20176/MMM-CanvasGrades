@@ -279,6 +279,37 @@ describe("happy cycle", () => {
 	});
 });
 
+describe("subject styling", () => {
+	it("sends icon and colour per entry, never the keys, and applies hideUngraded", async () => {
+		const ctx = setup();
+		await ctx.register("module_1", {
+			students: ["2001"],
+			subjectIcons: { ALGEBRA: "fa-solid fa-calculator", BAD: "x;y" },
+			subjectColors: { ALGEBRA: "#c2410c", BIOLOGY: "teal" },
+			hideUngraded: true
+		});
+		const payload = ctx.last();
+		const text = JSON.stringify(payload);
+		for (const secret of ["ALGEBRA", "BIOLOGY", "subjectIcons", "subjectColors", "BAD"])
+			assert.ok(!text.includes(secret), secret);
+		const student = payload.students[0];
+		const byName = Object.fromEntries(student.courses.map((course) => [course.name, course]));
+		assert.deepEqual([byName["Algebra I"].icon, byName["Algebra I"].color], ["fa-solid fa-calculator", "#c2410c"]);
+		assert.deepEqual([byName.Biology.icon, byName.Biology.color], [null, "teal"]);
+		assert.ok(
+			student.missing.every(
+				(item) =>
+					(item.icon === "fa-solid fa-calculator" && item.color === "#c2410c") || item.course !== "Algebra I"
+			)
+		);
+		assert.ok(
+			!("World History" in byName) || byName["World History"].missingCount > 0,
+			"ungraded course without missing work is omitted"
+		);
+		assert.ok(Log.lines.some((line) => line.level === "warn" && /subjectIcons/.test(line.message)));
+	});
+});
+
 describe("registration", () => {
 	it("re-registering the same config republishes immediately without fetching", async () => {
 		const ctx = setup();

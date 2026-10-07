@@ -566,6 +566,8 @@ describe("buildStudentView on the fixtures", () => {
 			{
 				name: "Chapter 4 Worksheet",
 				course: "Algebra I",
+				icon: null,
+				color: null,
 				dueAt: "2026-10-02T04:59:00.000Z",
 				pointsText: "20 pts",
 				inferred: false
@@ -573,6 +575,8 @@ describe("buildStudentView on the fixtures", () => {
 			{
 				name: "Homework 12",
 				course: "Algebra I",
+				icon: null,
+				color: null,
 				dueAt: "2026-10-03T06:59:00.000Z",
 				pointsText: "10 pts",
 				inferred: true
