@@ -7,7 +7,8 @@ const { test, beforeEach, afterEach } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { FakeElement, textOf, textsOf, hasClass, install } = require("./support/fake-dom.js");
+const { FakeElement, textOf, textsOf, hasClass, mount, unmount, install } = require("./support/fake-dom.js");
+const { createFakeLottie } = require("./support/fake-lottie.js");
 
 let definition = null;
 global.Module = {
@@ -27,9 +28,24 @@ const spec = definition;
 // ---- Fake intervals ----
 const realSetInterval = global.setInterval;
 const realClearInterval = global.clearInterval;
+const realSetTimeout = global.setTimeout;
+const realClearTimeout = global.clearTimeout;
 let intervals = [];
+let timeouts = [];
 beforeEach(() => {
 	intervals = [];
+	timeouts = [];
+	document.body.children = [];
+	delete global.lottie;
+	delete global.window;
+	global.setTimeout = (fn, ms) => {
+		const t = { fn, ms };
+		timeouts.push(t);
+		return t;
+	};
+	global.clearTimeout = (t) => {
+		timeouts = timeouts.filter((x) => x !== t);
+	};
 	global.setInterval = (fn, ms) => {
 		const t = { fn, ms };
 		intervals.push(t);
@@ -40,6 +56,10 @@ beforeEach(() => {
 	};
 });
 afterEach(() => {
+	global.setTimeout = realSetTimeout;
+	global.clearTimeout = realClearTimeout;
+	delete global.lottie;
+	delete global.window;
 	global.setInterval = realSetInterval;
 	global.clearInterval = realClearInterval;
 });
@@ -68,6 +88,8 @@ function make(config = {}, clock = { now: NOW }) {
 	m._now = () => clock.now;
 	m.sendSocketNotification = (n, p) => m.sent.push([n, p]);
 	m.updateDom = (speed) => m.domUpdates.push(speed);
+	m.file = (f) => "modules/MMM-CanvasGrades/" + f;
+	m.name = "MMM-CanvasGrades";
 	m.start();
 	return m;
 }
@@ -95,6 +117,9 @@ test("defaults cover the documented options and styles are declared", () => {
 		"canvasUrl",
 		"students",
 		"layout",
+		"warningAnimation",
+		"warningLoop",
+		"reduceMotion",
 		"showMissing",
 		"maxMissing",
 		"errorGraceSeconds",
@@ -425,15 +450,35 @@ test("empty label never renders a name element", () => {
 
 // ---- Layouts ----
 
-test("compact: no missing list, no recent grades, badges present", () => {
+test("compact: lists missing work above the course rows, no recent grades, badges present", () => {
 	const m = make({ layout: "compact" });
 	const root = feed(m, payload("ok-two-students"));
 	assert.ok(hasClass(root, "cg-layout-compact"));
-	assert.ok(!has(root, ".cg-missing"));
+	const a = root.querySelectorAll(".cg-student")[0];
+	const names = a.children.map((c) => c.className.split(" ")[0]);
+	assert.ok(names.indexOf("cg-missing") !== -1);
+	assert.ok(names.indexOf("cg-missing") < names.indexOf("cg-courses"));
+	assert.deepEqual(textsOf(a, ".cg-missing-name"), [
+		"Chapter 4 Quiz",
+		"Lab Report: Cell Structure",
+		"Linear Equations Worksheet"
+	]);
+	assert.deepEqual(textsOf(a, ".cg-missing-course"), ["Biology", "Biology", "Algebra I"]);
+	assert.equal(textOf(a.querySelector(".cg-missing-points")), "20 pts");
+	assert.ok(has(a, ".cg-missing-due"));
+	assert.deepEqual(textsOf(a, ".cg-more"), ["+2 more"]);
 	assert.ok(!has(root, ".cg-recent"));
 	assert.equal(count(root, ".cg-badge"), 3);
 	assert.ok(has(root, ".cg-badge .cg-badge-icon.fa-circle-exclamation"));
 	assert.ok(has(root, ".cg-course-grade"));
+});
+
+test("compact: student with nothing missing shows the calm line, no list", () => {
+	const m = make({ layout: "compact" });
+	const root = feed(m, payload("ok-two-students"));
+	const b = root.querySelectorAll(".cg-student")[1];
+	assert.ok(has(b, ".cg-clear"));
+	assert.ok(!has(b, ".cg-missing"));
 });
 
 test("compact with no course rows still lists missing work", () => {
@@ -721,4 +766,373 @@ test("studentsNotFound hidden for 0, missing, and garbage values", () => {
 test("studentsNotFound is not shown in loading or error states", () => {
 	const m = make();
 	assert.equal(count(feed(m, payload("error-auth", { studentsNotFound: 2 })), ".cg-notice"), 0);
+});
+
+// ---- Warning graphic and Lottie lifecycle ----
+
+// Two students that both have missing work: two warning graphics.
+function bothMissing(over = {}) {
+	const p = payload("ok-two-students", over);
+	p.students[1].missing = JSON.parse(JSON.stringify(p.students[0].missing));
+	p.students[1].missingTotal = 3;
+	return p;
+}
+
+// Mimics MagicMirror: new tree on screen, old tree detached, then MODULE_DOM_UPDATED.
+function show(m, p) {
+	const root = p ? feed(m, p) : m.getDom();
+	if (m._tree) unmount(m._tree);
+	m._tree = mount(root);
+	m.notificationReceived("MODULE_DOM_UPDATED", null, undefined);
+	return root;
+}
+
+function withLottie() {
+	global.lottie = createFakeLottie();
+	return global.lottie;
+}
+
+const fallbackRenders = (m) => m.domUpdates.filter((v) => v === 0).length;
+
+test("defaults for the warning options", () => {
+	assert.equal(spec.defaults.warningAnimation, "lottie");
+	assert.equal(spec.defaults.warningLoop, "loop");
+	assert.equal(spec.defaults.reduceMotion, false);
+});
+
+test("getScripts loads lottie only when needed", () => {
+	const m = make();
+	assert.deepEqual(m.getScripts(), ["modules/MMM-CanvasGrades/node_modules/lottie-web/build/player/lottie.min.js"]);
+	for (const cfg of [{ warningAnimation: "css" }, { warningAnimation: "none" }, { reduceMotion: true }]) {
+		assert.deepEqual(make(cfg).getScripts(), [], JSON.stringify(cfg));
+	}
+	global.window = { matchMedia: () => ({ matches: true }) };
+	assert.deepEqual(make().getScripts(), []);
+	delete global.window;
+	withLottie();
+	assert.deepEqual(make().getScripts(), [], "already provided by another module");
+});
+
+test("one warning per student block, never per item; none without missing work", () => {
+	withLottie();
+	const m = make();
+	let root = feed(m, payload("ok-two-students"));
+	assert.equal(count(root, ".cg-warning"), 1);
+	assert.equal(count(root, ".cg-missing-item"), 3);
+	assert.ok(has(root.querySelectorAll(".cg-student")[0], ".cg-missing-head .cg-warning.cg-warning-lottie"));
+	assert.ok(has(root, ".cg-missing-head .cg-missing-title"));
+	root = feed(m, bothMissing());
+	assert.equal(count(root, ".cg-warning-lottie"), 2);
+	root = feed(m, payload("nothing-missing"));
+	assert.equal(count(root, ".cg-warning"), 0);
+});
+
+test("the warning is aria-hidden and carries no text", () => {
+	withLottie();
+	const m = make();
+	const root = feed(m, payload("ok-two-students"));
+	assert.equal(root.querySelector(".cg-warning").attributes["aria-hidden"], "true");
+	assert.equal(textOf(root.querySelector(".cg-warning")), "");
+});
+
+test("more than two students: only two lottie containers, the rest use the CSS icon", () => {
+	withLottie();
+	const m = make();
+	const p = bothMissing();
+	p.students.push(JSON.parse(JSON.stringify(p.students[0])));
+	const root = feed(m, p);
+	assert.equal(count(root, ".cg-warning-lottie"), 2);
+	assert.equal(count(root, ".cg-warning-css"), 1);
+	assert.equal(m.pendingAnims.length, 2);
+});
+
+test("warningAnimation css renders the CSS icon and creates no player", () => {
+	const lot = withLottie();
+	const m = make({ warningAnimation: "css" });
+	const root = show(m, bothMissing());
+	assert.equal(count(root, ".cg-warning-css"), 2);
+	assert.ok(has(root, ".cg-warning-css .cg-warning-icon.fa-triangle-exclamation"));
+	assert.equal(count(root, ".cg-warning-lottie"), 0);
+	assert.equal(lot.created, 0);
+});
+
+test("warningAnimation none renders no graphic", () => {
+	const lot = withLottie();
+	const m = make({ warningAnimation: "none" });
+	const root = show(m, bothMissing());
+	assert.equal(count(root, ".cg-warning"), 0);
+	assert.equal(lot.created, 0);
+	assert.ok(has(root, ".cg-missing-title"));
+});
+
+test("an unknown warningAnimation falls back to lottie", () => {
+	withLottie();
+	const m = make({ warningAnimation: "sparkles" });
+	assert.equal(count(feed(m, payload("ok-two-students")), ".cg-warning-lottie"), 1);
+});
+
+test("players are created once the container is attached, with loop and once options", () => {
+	const lot = withLottie();
+	let m = make();
+	const root = feed(m, bothMissing());
+	assert.equal(lot.created, 0, "nothing is created inside getDom");
+	m._tree = mount(root);
+	m.notificationReceived("MODULE_DOM_UPDATED", null, undefined);
+	assert.equal(lot.created, 2);
+	const o = lot.players[0].opts;
+	assert.equal(o.loop, true);
+	assert.equal(o.renderer, "svg");
+	assert.equal(o.autoplay, true);
+	assert.equal(o.path, "modules/MMM-CanvasGrades/animations/code-orange.json");
+	assert.ok(root.querySelectorAll(".cg-warning-lottie").includes(o.container));
+
+	const lot2 = withLottie();
+	m = make({ warningLoop: "once" });
+	show(m, payload("ok-two-students"));
+	assert.equal(lot2.players[0].opts.loop, 2, "first play plus 2 loops is 3 cycles");
+});
+
+test("a container that is not attached yet is retried on a bounded timer", () => {
+	const lot = withLottie();
+	const m = make();
+	feed(m, payload("ok-two-students"));
+	m.notificationReceived("MODULE_DOM_UPDATED", null, undefined);
+	assert.equal(lot.created, 0);
+	assert.equal(timeouts.length, 1);
+	let runs = 0;
+	while (timeouts.length && runs < 200) {
+		timeouts.shift().fn();
+		runs++;
+	}
+	assert.equal(runs, 50, "bounded retries");
+	assert.equal(timeouts.length, 0);
+	assert.equal(lot.created, 0);
+});
+
+test("no player is created while suspended; resume creates them and plays", () => {
+	const lot = withLottie();
+	const m = make();
+	m.suspend();
+	m.hidden = true;
+	show(m, bothMissing());
+	assert.equal(lot.created, 0);
+	assert.equal(timeouts.length, 0);
+	m.resume();
+	assert.equal(lot.created, 2);
+	assert.ok(lot.live().every((p) => p.playing));
+});
+
+test("suspend pauses live players and resume plays them again", () => {
+	const lot = withLottie();
+	const m = make();
+	show(m, bothMissing());
+	assert.equal(lot.live().length, 2);
+	m.suspend();
+	m.hidden = true;
+	assert.ok(lot.live().every((p) => !p.playing && p.pauses === 1));
+	m.resume();
+	assert.ok(lot.live().every((p) => p.playing));
+	assert.equal(lot.created, 2, "resume reuses the players");
+});
+
+test("MODULE_DOM_UPDATED while MM reports visible clears a stuck suspended flag", () => {
+	const lot = withLottie();
+	const m = make();
+	m.suspend();
+	m.hidden = false;
+	show(m, payload("ok-two-students"));
+	assert.equal(m.suspended, false);
+	assert.equal(lot.created, 1);
+});
+
+test("player count never exceeds the cap over 200 re-renders; detached players are destroyed", () => {
+	const lot = withLottie();
+	const m = make();
+	show(m, bothMissing());
+	for (let i = 0; i < 200; i++) {
+		show(m);
+		assert.ok(lot.live().length <= 2, "live players at render " + i);
+		assert.ok(m.lottieInstances.length <= 2);
+	}
+	assert.equal(lot.live().length, 2);
+	assert.equal(lot.created, 402, "one new pair per render");
+	assert.equal(lot.players.length - lot.live().length, 400, "every older player was destroyed");
+	assert.ok(lot.live().every((p) => p.opts.container.isConnected));
+	assert.equal(timeouts.length, 0);
+});
+
+test("old tree still attached during the fade: cap holds, players are created after it detaches", () => {
+	const lot = withLottie();
+	const m = make();
+	show(m, bothMissing());
+	for (let i = 0; i < 20; i++) {
+		// new tree attached while the old one is still attached
+		const next = mount(m.getDom());
+		m.notificationReceived("MODULE_DOM_UPDATED", null, undefined);
+		assert.ok(lot.live().length <= 2, "cap during overlap " + i);
+		unmount(m._tree);
+		m._tree = next;
+		m.notificationReceived("MODULE_DOM_UPDATED", null, undefined);
+		assert.ok(lot.live().length <= 2);
+		assert.ok(lot.live().every((p) => p.opts.container.isConnected));
+	}
+	assert.equal(lot.live().length, 2);
+});
+
+test("getDom never destroys players", () => {
+	const lot = withLottie();
+	const m = make();
+	show(m, bothMissing());
+	const before = lot.live().length;
+	for (let i = 0; i < 20; i++) m.getDom();
+	assert.equal(lot.live().length, before);
+	assert.ok(lot.players.every((p) => !p.destroyed));
+});
+
+test("players are destroyed when the missing list disappears", () => {
+	const lot = withLottie();
+	const m = make();
+	show(m, bothMissing());
+	assert.equal(lot.live().length, 2);
+	feed(m, payload("nothing-missing"));
+	assert.equal(lot.live().length, 0);
+	show(m, bothMissing());
+	assert.equal(lot.live().length, 2);
+	feed(m, payload("error-auth"));
+	assert.equal(lot.live().length, 0);
+});
+
+test("stop destroys every player and leaves no timers", () => {
+	const lot = withLottie();
+	const m = make();
+	show(m, bothMissing());
+	m.getDom();
+	m.notificationReceived("MODULE_DOM_UPDATED", null, undefined);
+	m.stop();
+	assert.equal(lot.live().length, 0);
+	assert.equal(intervals.length, 0);
+	assert.equal(timeouts.length, 0);
+	assert.equal(m.lottieInstances.length, 0);
+});
+
+test("loadAnimation failure falls back to the CSS pulse once, with no retry loop", () => {
+	const lot = withLottie();
+	lot.throwOnLoad = true;
+	const m = make();
+	show(m, bothMissing());
+	assert.equal(lot.created, 0);
+	assert.equal(fallbackRenders(m), 1, "one fallback re-render");
+	const root = show(m);
+	assert.equal(count(root, ".cg-warning-css"), 2);
+	assert.equal(count(root, ".cg-warning-lottie"), 0);
+	for (let i = 0; i < 20; i++) show(m);
+	lot.throwOnLoad = false;
+	for (let i = 0; i < 20; i++) show(m);
+	assert.equal(lot.created, 0, "never retried");
+	assert.equal(fallbackRenders(m), 1);
+	assert.equal(timeouts.length, 0);
+});
+
+test("a data_failed event from a player switches to the CSS pulse", () => {
+	const lot = withLottie();
+	const m = make();
+	show(m, bothMissing());
+	assert.equal(lot.live().length, 2);
+	lot.players[0].listeners.data_failed();
+	assert.equal(lot.live().length, 0);
+	assert.equal(fallbackRenders(m), 1);
+	const root = show(m);
+	assert.equal(count(root, ".cg-warning-css"), 2);
+	lot.players[1].listeners.data_failed();
+	assert.equal(fallbackRenders(m), 1, "second failure event is ignored");
+	assert.equal(lot.created, 2);
+});
+
+test("lottie not loaded: the script is injected once; load success binds players", () => {
+	const m = make();
+	for (let i = 0; i < 5; i++) show(m, bothMissing());
+	assert.equal(document.body.children.length, 1);
+	const script = document.body.children[0];
+	assert.equal(script.src, "modules/MMM-CanvasGrades/node_modules/lottie-web/build/player/lottie.min.js");
+	const lot = withLottie();
+	script.onload();
+	assert.equal(lot.created, 2);
+	assert.equal(document.body.children.length, 1);
+});
+
+test("lottie script load error falls back to CSS without retrying", () => {
+	const m = make();
+	show(m, bothMissing());
+	document.body.children[0].onerror();
+	const root = show(m);
+	assert.equal(count(root, ".cg-warning-css"), 2);
+	for (let i = 0; i < 10; i++) show(m);
+	assert.equal(document.body.children.length, 1, "no second script");
+});
+
+test("config reduceMotion gives the CSS icon and no players", () => {
+	const lot = withLottie();
+	const m = make({ reduceMotion: true });
+	const root = show(m, bothMissing());
+	assert.ok(hasClass(root, "cg-reduce-motion"));
+	assert.equal(count(root, ".cg-warning-css"), 2);
+	assert.equal(lot.created, 0);
+});
+
+test("prefers-reduced-motion gives the CSS icon and no players", () => {
+	const lot = withLottie();
+	global.window = { matchMedia: (q) => ({ matches: /reduced-motion/.test(q) }) };
+	const m = make();
+	const root = show(m, bothMissing());
+	assert.ok(hasClass(root, "cg-reduce-motion"));
+	assert.equal(count(root, ".cg-warning-css"), 2);
+	assert.equal(lot.created, 0);
+});
+
+test("reduceMotion with warningAnimation none shows nothing", () => {
+	withLottie();
+	const m = make({ reduceMotion: true, warningAnimation: "none" });
+	assert.equal(count(show(m, bothMissing()), ".cg-warning"), 0);
+});
+
+test("the warning graphic does not change the information in the text list", () => {
+	withLottie();
+	const text = (cfg) => textsOf(feed(make(cfg), payload("ok-two-students")), ".cg-missing-item");
+	assert.deepEqual(text({ warningAnimation: "none" }), text({}));
+});
+
+test("cg-suspended follows suspend and resume and survives re-render", () => {
+	withLottie();
+	const m = make();
+	let root = show(m, payload("ok-two-students"));
+	assert.ok(!hasClass(root, "cg-suspended"));
+	m.suspend();
+	m.hidden = true;
+	assert.ok(hasClass(root, "cg-suspended"), "live root updated at once");
+	root = m.getDom();
+	assert.ok(hasClass(root, "cg-suspended"), "new root built while suspended");
+	m.resume();
+	assert.ok(!hasClass(m._root, "cg-suspended"));
+	m.hidden = false;
+	root = m.getDom();
+	assert.ok(!hasClass(root, "cg-suspended"));
+});
+
+test("cg-suspended is set initially when the module is hidden, and cleared by the stuck-flag fix", () => {
+	withLottie();
+	let m = make();
+	m.hidden = true;
+	assert.ok(hasClass(m.getDom(), "cg-suspended"));
+	m = make();
+	m.suspend();
+	m.hidden = false;
+	const root = show(m, payload("ok-two-students"));
+	assert.ok(!hasClass(root, "cg-suspended") || !m.suspended);
+	assert.ok(!hasClass(m._root, "cg-suspended"));
+});
+
+test("cg-warn-once is on the root only for warningLoop once", () => {
+	assert.ok(hasClass(feed(make({ warningLoop: "once" }), payload("ok-two-students")), "cg-warn-once"));
+	assert.ok(!hasClass(feed(make(), payload("ok-two-students")), "cg-warn-once"));
+	assert.ok(!hasClass(feed(make({ warningLoop: "bogus" }), payload("ok-two-students")), "cg-warn-once"));
 });

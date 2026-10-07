@@ -5,6 +5,10 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    ignore:
+      # lottie-web is deliberately pinned to 5.10.2, the version every Glass module uses, so the animation
+      # lifecycle behaves the same everywhere. Bump it by hand, in all modules together.
+      - dependency-name: "lottie-web"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

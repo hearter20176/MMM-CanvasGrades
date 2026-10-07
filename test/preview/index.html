@@ -7,6 +7,10 @@
 		<link rel="stylesheet" href="../../../../css/font-awesome.css" />
 		<link rel="stylesheet" href="../../MMM-CanvasGrades.css" />
 		<style>
+			/* MagicMirror main.css sets html { font-size: 20px }; em and rem sizes in the module CSS depend on it. */
+			html {
+				font-size: 20px;
+			}
 			html,
 			body {
 				margin: 0;
@@ -15,25 +19,38 @@
 				font-family: "Roboto Condensed", Arial, sans-serif;
 			}
 			#frame {
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-start;
 				width: 1080px;
 				box-sizing: border-box;
-				padding: 24px;
+				padding: 60px; /* MagicMirror stock page margins */
 				background: #000;
 			}
-			.region.top.right .module {
-				width: 500px;
-				margin-left: auto;
+			.region .module {
+				width: 465px;
 			}
-			.region.top.right .module.cg-wide {
-				width: 1000px;
+			.region .module.cg-wide {
+				width: 960px;
+			}
+			.region.hidden {
+				display: none;
 			}
 		</style>
 	</head>
 	<body class="mm-night">
+		<!-- top_left and top_right columns of a 1080 px portrait screen -->
 		<div id="frame">
-			<div class="region top right">
+			<div class="region top left" id="region_left">
 				<div class="container">
-					<div class="module MMM-CanvasGrades" id="module_preview_MMM-CanvasGrades">
+					<div class="module MMM-CanvasGrades" id="module_left_MMM-CanvasGrades">
+						<div class="module-content"></div>
+					</div>
+				</div>
+			</div>
+			<div class="region top right" id="region_right">
+				<div class="container">
+					<div class="module MMM-CanvasGrades" id="module_right_MMM-CanvasGrades">
 						<div class="module-content"></div>
 					</div>
 				</div>

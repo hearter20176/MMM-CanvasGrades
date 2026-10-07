@@ -1,3 +1,4 @@
+/* global Module, Log, lottie */
 /* MMM-CanvasGrades
  *
  * Shows a Canvas observer's students: course grades, missing assignments (flagged first),
@@ -83,6 +84,13 @@ Module.register("MMM-CanvasGrades", {
 		// Browser locale when empty
 		locale: "",
 		animationSpeed: 1000,
+		// Warning graphic beside the missing list: "lottie" (animated, falls back to "css" when
+		// Lottie is unavailable), "css" (pulsing icon), or "none"
+		warningAnimation: "lottie",
+		// "loop" (continuous) or "once" (3 cycles each time the graphic appears)
+		warningLoop: "loop",
+		// Forces the CSS fallback instead of Lottie; prefers-reduced-motion does the same
+		reduceMotion: false,
 		// A transient outage with no data is shown as "loading" for this many seconds first
 		errorGraceSeconds: 120,
 
@@ -100,6 +108,18 @@ Module.register("MMM-CanvasGrades", {
 	MAX_MISSING: 50,
 	MAX_RECENT: 20,
 	TICK_MS: 60000,
+	// Hard cap on live Lottie players per module instance (one per student block, two students)
+	MAX_PLAYERS: 2,
+	LOTTIE_SCRIPT: "node_modules/lottie-web/build/player/lottie.min.js",
+	LOTTIE_FILE: "animations/code-orange.json",
+
+	getScripts() {
+		// Lottie is shared with the other Glass modules (all pin lottie-web 5.10.2). MagicMirror
+		// loads each module's scripts in turn, so skip it when the global already exists.
+		var scripts = [];
+		if (this._wantsLottie() && typeof lottie === "undefined") scripts.push(this.file(this.LOTTIE_SCRIPT));
+		return scripts;
+	},
 
 	getStyles() {
 		// MagicMirror's vendored Font Awesome for the icons
@@ -112,6 +132,14 @@ Module.register("MMM-CanvasGrades", {
 		this.tickTimer = null;
 		this.suspended = false;
 		this.lastRenderKey = "";
+		this.lottieInstances = []; // live players: { player, container }
+		this.pendingAnims = []; // containers created by the latest getDom() awaiting a player
+		this.renderGen = 0; // bumped on every getDom(); invalidates timers from older renders
+		this.animTimer = null;
+		this._lottieLoading = false;
+		this._lottieFailed = false;
+		this.reduceMotion = this._shouldReduceMotion();
+		this._warnBudget = 0;
 
 		this.sendSocketNotification("CANVASGRADES_REGISTER", {
 			instanceId: this.identifier,
@@ -122,13 +150,25 @@ Module.register("MMM-CanvasGrades", {
 
 	suspend() {
 		this.suspended = true;
+		this._setRootSuspended(true);
 		this._stopTick();
+		this._pauseAnimations();
 	},
 
 	resume() {
 		this.suspended = false;
+		this._setRootSuspended(false);
 		this._startTick();
+		this._startAnimations();
 		this.updateDom(0);
+	},
+
+	// MagicMirror calls this when the module is shut down.
+	stop() {
+		this._stopTick();
+		this._clearAnimTimer();
+		this._destroyAllPlayers();
+		this.pendingAnims = [];
 	},
 
 	notificationReceived(notification, payload, sender) {
@@ -139,8 +179,12 @@ Module.register("MMM-CanvasGrades", {
 		// is visibly on screen, so stop treating it as suspended.
 		if (this.suspended && this.hidden === false) {
 			this.suspended = false;
+			this._setRootSuspended(false);
 			this._startTick();
 		}
+		// MagicMirror sends these after every updateDom() settles (swapped or skipped), so this is
+		// the reliable point to reap the outgoing tree and bind the new containers.
+		this._startAnimations();
 	},
 
 	socketNotificationReceived(notification, payload) {
@@ -162,6 +206,13 @@ Module.register("MMM-CanvasGrades", {
 			this.firstErrorSeenAt = this._now();
 		}
 
+		// No missing list left to decorate: release the players now rather than waiting for the swap.
+		if (!this._hasWarningStudents(view)) {
+			this._clearAnimTimer();
+			this.pendingAnims = [];
+			this._destroyAllPlayers();
+		}
+
 		this.updateDom(this._animationSpeed());
 	},
 
@@ -175,6 +226,15 @@ Module.register("MMM-CanvasGrades", {
 	// MM also reports the module hidden.
 	_isSuspended() {
 		return this.suspended && this.hidden !== false;
+	},
+
+	// Lets the CSS pause its pulse while the module is hidden; applied to the live root here and
+	// to every new root in getDom().
+	_setRootSuspended(on) {
+		var root = this._root;
+		if (!root || !root.classList) return;
+		if (on) root.classList.add("cg-suspended");
+		else root.classList.remove("cg-suspended");
 	},
 
 	_startTick() {
@@ -389,13 +449,13 @@ Module.register("MMM-CanvasGrades", {
 	_renderKey(now) {
 		var st = this._displayState(now);
 		var due = [];
-		if (st.name === "ok" && this._layout() === "full") {
+		if (st.name === "ok") {
 			for (var i = 0; i < this.view.students.length; i++) {
 				var list = this.view.students[i].missing;
 				for (var j = 0; j < list.length; j++) due.push(this._dueText(list[j].dueAt, now));
 			}
 		}
-		return [st.name, st.errorKind, st.stale ? "1" : "0", st.footer, due.join("|")].join("#");
+		return [st.name, st.errorKind, st.stale ? "1" : "0", st.footer, due.join("|"), this._warningMode()].join("#");
 	},
 
 	_startOfDay(d) {
@@ -460,11 +520,23 @@ Module.register("MMM-CanvasGrades", {
 			var now = this._now();
 			var st = this._displayState(now);
 			this.lastRenderKey = this._renderKey(now);
+			// New render generation: previous registrations are dropped, live players are left
+			// alone (they stop when their container detaches, see _reapDetachedAnimations).
+			this._beginRender();
+			this._warnBudget = this.MAX_PLAYERS;
 			var layout = this._layout();
 			var root = this._el(
 				"div",
-				"cg-root cg-layout-" + layout + " cg-state-" + st.name + (st.stale ? " cg-stale" : "")
+				"cg-root cg-layout-" +
+					layout +
+					" cg-state-" +
+					st.name +
+					(st.stale ? " cg-stale" : "") +
+					(this.reduceMotion ? " cg-reduce-motion" : "") +
+					(this.config.warningLoop === "once" ? " cg-warn-once" : "") +
+					(this.suspended || this.hidden === true ? " cg-suspended" : "")
 			);
+			this._root = root;
 
 			if (st.name === "loading") {
 				root.appendChild(this._el("div", "cg-status", "Loading grades..."));
@@ -512,9 +584,8 @@ Module.register("MMM-CanvasGrades", {
 
 		var wantMissing = this.config.showMissing !== false;
 		var noneMissing = wantMissing && s.missing.length === 0 && s.missingTotal === 0 && !this._anyCourseMissing(s);
-		// Compact normally shows missing work only as badges; with no course rows to carry them,
-		// fall back to the list so missing work is never silently hidden.
-		var listMissing = s.missing.length > 0 && (layout === "full" || s.courses.length === 0);
+		// Both layouts list missing work; compact differs only by dropping recent grades.
+		var listMissing = s.missing.length > 0;
 
 		if (listMissing) box.appendChild(this._missingDom(s));
 		if (noneMissing && s.notice !== "no_courses") {
@@ -538,6 +609,11 @@ Module.register("MMM-CanvasGrades", {
 	_missingDom(s) {
 		var now = this._now();
 		var box = this._el("div", "cg-missing");
+		var head = this._el("div", "cg-missing-head");
+		var warning = this._warningDom();
+		if (warning) head.appendChild(warning);
+		head.appendChild(this._el("span", "cg-missing-title", "Missing"));
+		box.appendChild(head);
 		for (var i = 0; i < s.missing.length; i++) {
 			var m = s.missing[i];
 			var item = this._el("div", "cg-missing-item" + (m.inferred ? " cg-missing-inferred" : ""));
@@ -552,6 +628,232 @@ Module.register("MMM-CanvasGrades", {
 		var extra = s.missingTotal - s.missing.length;
 		if (extra > 0) box.appendChild(this._el("div", "cg-more", "+" + extra + " more"));
 		return box;
+	},
+
+	// ---- Warning graphic ----
+
+	_prefersReducedMotion() {
+		return (
+			typeof window !== "undefined" &&
+			!!window.matchMedia &&
+			!!window.matchMedia("(prefers-reduced-motion: reduce)").matches
+		);
+	},
+
+	_shouldReduceMotion() {
+		return this.config.reduceMotion === true || this._prefersReducedMotion();
+	},
+
+	_warningConfig() {
+		var v = this.config.warningAnimation;
+		return v === "css" || v === "none" ? v : "lottie";
+	},
+
+	// True when the module would use Lottie if it were available (decides script loading).
+	_wantsLottie() {
+		return this._warningConfig() === "lottie" && !this._shouldReduceMotion();
+	},
+
+	// Effective graphic: "lottie", "css" or "none". Lottie degrades to the CSS pulse on any
+	// failure and under reduced motion.
+	_warningMode() {
+		var cfg = this._warningConfig();
+		if (cfg !== "lottie") return cfg;
+		return this.reduceMotion || this._lottieFailed ? "css" : "lottie";
+	},
+
+	_hasWarningStudents(view) {
+		if (!view || view.status !== "ok") return false;
+		for (var i = 0; i < view.students.length; i++) {
+			if (view.students[i].missing.length > 0) return true;
+		}
+		return false;
+	},
+
+	// One graphic per student block; at most MAX_PLAYERS Lottie containers per render, the rest
+	// get the CSS icon.
+	_warningDom() {
+		var mode = this._warningMode();
+		if (mode === "none") return null;
+		if (mode === "lottie" && this._warnBudget > 0) {
+			this._warnBudget--;
+			var box = this._el("div", "cg-warning cg-warning-lottie");
+			box.setAttribute("aria-hidden", "true");
+			this._registerAnimation(box);
+			return box;
+		}
+		var icon = this._el("span", "cg-warning cg-warning-css");
+		icon.setAttribute("aria-hidden", "true");
+		icon.appendChild(this._icon("cg-warning-icon fa-solid fa-triangle-exclamation"));
+		return icon;
+	},
+
+	// ---- Lottie lifecycle (same pattern as MMM-GlassDailyCalendar) ----
+	//
+	// getDom() builds a brand-new tree on every render while MagicMirror keeps the previous tree
+	// attached for the fade-out, and may skip the swap entirely when the markup is identical. So
+	// players are NEVER destroyed in getDom(): they run on the visible tree until their container
+	// is detached, and _startAnimations() reaps them then. A player is created only once a
+	// registered container is connected. renderGen invalidates timers from older renders.
+
+	_clearAnimTimer() {
+		if (this.animTimer) {
+			clearTimeout(this.animTimer);
+			this.animTimer = null;
+		}
+	},
+
+	_destroyPlayer(entry) {
+		try {
+			entry.player.destroy();
+		} catch (err) {
+			Log.warn("[" + this.name + "] Failed to destroy lottie player: " + (err && err.message));
+		}
+	},
+
+	_destroyAllPlayers() {
+		var list = this.lottieInstances || [];
+		this.lottieInstances = [];
+		for (var i = 0; i < list.length; i++) this._destroyPlayer(list[i]);
+	},
+
+	_reapDetachedAnimations() {
+		var self = this;
+		this.lottieInstances = (this.lottieInstances || []).filter(function (entry) {
+			if (entry.container.isConnected) return true;
+			self._destroyPlayer(entry);
+			return false;
+		});
+	},
+
+	_beginRender() {
+		this.renderGen = (this.renderGen || 0) + 1;
+		this._clearAnimTimer();
+		this.pendingAnims = [];
+	},
+
+	_registerAnimation(container) {
+		if (!container || this._warningMode() !== "lottie") return;
+		this.pendingAnims = this.pendingAnims || [];
+		this.pendingAnims.push({ container: container, player: null });
+	},
+
+	// One-way switch to the CSS pulse: no retries, one re-render.
+	_lottieFail(reason) {
+		if (this._lottieFailed) return;
+		this._lottieFailed = true;
+		Log.warn("[" + this.name + "] Lottie unavailable, using the CSS warning icon: " + reason);
+		this._clearAnimTimer();
+		this.pendingAnims = [];
+		this._destroyAllPlayers();
+		this.updateDom(0);
+	},
+
+	// Injects the lottie script once when the global is missing (getScripts() normally loads it).
+	// On load the current registrations are bound through the normal lifecycle.
+	_ensureLottie() {
+		if (this._lottieLoading || this._lottieFailed) return;
+		this._lottieLoading = true;
+		var self = this;
+		var script = document.createElement("script");
+		script.src = this.file(this.LOTTIE_SCRIPT);
+		script.onload = function () {
+			self._lottieLoading = false;
+			if (typeof lottie === "undefined") self._lottieFail("script loaded without a lottie global");
+			else self._startAnimations();
+		};
+		script.onerror = function () {
+			self._lottieLoading = false;
+			self._lottieFail("script failed to load");
+		};
+		document.body.appendChild(script);
+	},
+
+	// Creates players for registered containers that are now attached and reaps players on
+	// detached containers. Containers not attached yet (the old tree is still fading out) are
+	// retried on a short timer, bounded by `attempts`. Nothing is created while suspended.
+	_startAnimations(attempts) {
+		if (attempts === undefined) attempts = 50;
+		this._clearAnimTimer();
+		this.lottieInstances = this.lottieInstances || [];
+		this.pendingAnims = this.pendingAnims || [];
+		this._reapDetachedAnimations();
+		// MM sets hidden=false when a show starts but calls resume() only when its fade ends; a
+		// data render inside that window drops resume(). A module MM reports visible is not
+		// suspended.
+		if (this.suspended && this.hidden === false) {
+			this.suspended = false;
+			this._setRootSuspended(false);
+		}
+		if (this.suspended) return;
+		if (this._warningMode() !== "lottie") return;
+		var gen = this.renderGen;
+		var self = this;
+		var waiting = false;
+		for (var i = 0; i < this.pendingAnims.length; i++) {
+			var item = this.pendingAnims[i];
+			if (item.player) continue;
+			if (!item.container.isConnected) {
+				waiting = true;
+				continue;
+			}
+			if (typeof lottie === "undefined") {
+				this._ensureLottie();
+				continue;
+			}
+			if (this.lottieInstances.length >= this.MAX_PLAYERS) {
+				// Players from the previous tree are still live; they are reaped once it detaches.
+				waiting = true;
+				continue;
+			}
+			var player;
+			try {
+				player = lottie.loadAnimation({
+					container: item.container,
+					renderer: "svg",
+					// lottie-web counts the first play: loop 2 means 3 cycles in total
+					loop: this.config.warningLoop === "once" ? 2 : true,
+					autoplay: true,
+					path: this.file(this.LOTTIE_FILE)
+				});
+			} catch (err) {
+				this._lottieFail("loadAnimation threw: " + (err && err.message));
+				return;
+			}
+			if (player && typeof player.addEventListener === "function") {
+				player.addEventListener("data_failed", function () {
+					self._lottieFail("animation file failed to load");
+				});
+			}
+			item.player = player;
+			this.lottieInstances.push({ player: player, container: item.container });
+		}
+		// Every surviving player is on a connected container, so play them all (this also wakes
+		// players left on screen by a skipped swap while the module was suspended).
+		for (var j = 0; j < this.lottieInstances.length; j++) {
+			var pl = this.lottieInstances[j].player;
+			if (typeof pl.play === "function") pl.play();
+		}
+		var staleLeft = this.lottieInstances.some(function (entry) {
+			return !self.pendingAnims.some(function (it) {
+				return it.player === entry.player;
+			});
+		});
+		if ((waiting || staleLeft) && attempts > 0) {
+			this.animTimer = setTimeout(function () {
+				self.animTimer = null;
+				if (gen !== self.renderGen) return;
+				self._startAnimations(attempts - 1);
+			}, 100);
+		}
+	},
+
+	_pauseAnimations() {
+		this._clearAnimTimer();
+		var list = this.lottieInstances || [];
+		for (var i = 0; i < list.length; i++) {
+			if (typeof list[i].player.pause === "function") list[i].player.pause();
+		}
 	},
 
 	_coursesDom(s) {

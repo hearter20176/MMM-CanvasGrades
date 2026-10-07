@@ -1,57 +1,95 @@
 /* MMM-CanvasGrades styles
-   Colours come from the shared --mm-* theme variables (set on body.mm-day / body.mm-night
-   by the theme's custom.css); the fallbacks are the night values.
 
-   Scale: written for a 1080x1920 portrait mirror viewed from a distance. The root font size
-   is 1.3rem (about 21px) and nothing inside is smaller than 1em, so body text stays above 20px.
-   Hierarchy comes from colour and weight, not from shrinking text.
+   Visual reference: MMM-MyAgenda (the module these cards sit beside in the top regions).
+   Tokens reused from MMM-MyAgenda.css:
+     font stack, letter-spacing 0.01em, text #e9edf5, title #f8fafc, secondary rgba(233 237 245 / 78%),
+     card: 26px radius, 1px rgba(255 255 255 / 18%) border, 0 18px 50px shadow, 16px padding,
+           145deg white wash plus the two radial tints,
+     row: 145deg gradient, 14px radius, 6px 8px padding, 4px gap, inset 1px ring,
+     warm accent: .myag-warn #fbbf24, error: .myag-error #fca5a5, icon blue #7dd3fc.
+   Sizes are rem-based like MyAgenda and scale with --cg-font-scale (1 = MyAgenda sizes).
 
-   Layout: the card has a fixed width per layout, so loading, error and ok states occupy the
-   same footprint and a refresh never moves neighbouring modules sideways. Every selector is
-   scoped under .cg-root, which only this module creates. No animation, no glow. */
+   MyAgenda has no day styling of its own (the Pi theme's custom.css recolours it), so the
+   colours here read the shared --mm-* theme variables first and fall back to the MyAgenda
+   night values; body.mm-day only adds a light card and darker accents as a safety net.
+
+   Deliberately NOT copied: backdrop-filter, the shimmer/float animations and the row fade-in
+   (Pi rendering cost; this module must stay still apart from the one warning pulse).
+
+   Layout: fixed width per layout so loading, error and ok states share one footprint. Every
+   selector is scoped under .cg-root, which only this module creates. */
 
 .cg-root {
-	--cg-text: var(--mm-text, #e8edf6);
-	--cg-text-2: var(--mm-text-2, #9ba7bc);
-	--cg-border: var(--mm-border, rgb(255 255 255 / 10%));
-	--cg-tile: var(--mm-tile, rgb(255 255 255 / 5%));
-	--cg-bg: rgb(14 20 38 / 78%);
+	--cg-font-scale: 1;
+	--cg-text: var(--mm-text, #e9edf5);
+	--cg-title: var(--mm-title, #f8fafc);
+	--cg-text-2: var(--mm-text-2, rgb(233 237 245 / 78%));
+	--cg-border: var(--mm-border, rgb(255 255 255 / 18%));
+	--cg-row-bg: linear-gradient(145deg, rgb(255 255 255 / 8%), rgb(59 130 246 / 10%));
+	--cg-row-ring: rgb(255 255 255 / 6%);
+	--cg-missing-bg: linear-gradient(145deg, rgb(255 255 255 / 8%), rgb(251 191 36 / 14%));
+	--cg-missing-ring: rgb(251 191 36 / 35%);
+	--cg-card-bg:
+		linear-gradient(145deg, rgb(255 255 255 / 6%), rgb(255 255 255 / 2%)),
+		radial-gradient(120% 120% at 12% 12%, rgb(134 239 255 / 32%), rgb(37 99 235 / 0%)),
+		radial-gradient(140% 140% at 88% 18%, rgb(224 231 255 / 28%), rgb(99 102 241 / 0%));
+	--cg-card-shadow: 0 18px 50px rgb(0 12 48 / 35%), inset 0 0 0 1px rgb(255 255 255 / 8%);
 
-	/* Missing-work accent: muted amber, kept soft so it reads at a glance without glare. */
-	--cg-warn: rgb(232 170 120);
-	--cg-warn-bg: rgb(232 170 120 / 10%);
-	--cg-warn-line: rgb(232 170 120 / 70%);
-	--cg-ok: rgb(143 190 160);
+	/* Warm/overdue accent: MyAgenda's .myag-warn amber. The icon orange matches the Lottie file. */
+	--cg-warn: #fbbf24;
+	--cg-warn-icon: #ffa94d;
+	--cg-error: #fca5a5;
+	--cg-icon: #7dd3fc;
 
+	/* Compact card width. 465px puts two cards side by side inside stock MagicMirror
+	   margins (960px usable on a 1080px screen). Override from custom.css if your
+	   gutters are smaller, for example `.cg-root { --cg-compact-width: 496px; }`. */
+	--cg-compact-width: 465px;
+
+	position: relative;
 	box-sizing: border-box;
-	width: min(23em, calc(100vw - 2rem));
-	padding: 0.6em 0.8em;
-	font-family: inherit;
-	font-size: 1.3rem;
-	line-height: 1.3;
+	width: min(var(--cg-compact-width), calc(100vw - 2rem));
+	min-width: 260px;
+	padding: 16px;
+	overflow: hidden;
+	font-family:
+		"SF Pro Display",
+		"SF Pro Text",
+		inter,
+		"Segoe UI",
+		-apple-system,
+		system-ui,
+		sans-serif;
+	font-size: calc(0.82rem * var(--cg-font-scale));
+	line-height: 1.25;
 	text-align: left;
+	letter-spacing: 0.01em;
 	color: var(--cg-text);
-	background: var(--cg-bg);
+	background: var(--cg-card-bg);
 	border: 1px solid var(--cg-border);
-	border-radius: 18px;
-	transition:
-		background-color 1.5s ease,
-		border-color 1.5s ease,
-		color 1.5s ease;
+	border-radius: 26px;
+	box-shadow: var(--cg-card-shadow);
 }
 
 body.mm-day .cg-root {
 	--cg-text: var(--mm-text, #1d2738);
-	--cg-text-2: var(--mm-text-2, #5a6679);
-	--cg-bg: rgb(255 255 255 / 90%);
-	--cg-warn: rgb(176 82 24);
-	--cg-warn-bg: rgb(176 82 24 / 9%);
-	--cg-warn-line: rgb(176 82 24 / 70%);
-	--cg-ok: rgb(40 110 70);
+	--cg-title: var(--mm-title, #0f172a);
+	--cg-text-2: var(--mm-text-2, #475569);
+	--cg-border: var(--mm-border, rgb(15 23 42 / 14%));
+	--cg-row-bg: linear-gradient(145deg, rgb(255 255 255 / 70%), rgb(59 130 246 / 10%));
+	--cg-row-ring: rgb(15 23 42 / 8%);
+	--cg-missing-bg: linear-gradient(145deg, rgb(255 255 255 / 70%), rgb(217 119 6 / 14%));
+	--cg-missing-ring: rgb(180 83 9 / 40%);
+	--cg-card-bg: linear-gradient(145deg, rgb(255 255 255 / 92%), rgb(241 245 249 / 88%));
+	--cg-card-shadow: 0 12px 30px rgb(40 56 84 / 22%), inset 0 0 0 1px rgb(255 255 255 / 60%);
+	--cg-warn: #b45309;
+	--cg-warn-icon: #ea7a12;
+	--cg-error: #b91c1c;
+	--cg-icon: #0369a1;
 }
 
 .cg-root.cg-layout-full {
-	width: min(48em, calc(100vw - 2rem));
+	width: min(960px, calc(100vw - 2rem));
 }
 
 /* Render failure: occupy nothing. */
@@ -60,25 +98,35 @@ body.mm-day .cg-root {
 }
 
 .cg-root .cg-status {
+	padding: 8px 4px;
+	font-size: calc(0.9rem * var(--cg-font-scale));
+	text-align: center;
 	color: var(--cg-text-2);
 }
 
 .cg-root .cg-status-error {
-	color: var(--cg-warn);
+	color: var(--cg-error);
 }
 
 /* Students */
 .cg-root .cg-student + .cg-student {
-	margin-top: 0.8em;
-	padding-top: 0.8em;
-	border-top: 1px solid var(--cg-border);
+	margin-top: 12px;
 }
 
+/* Deliberate deviation from MyAgenda's .myag-header (28px, centred, uppercase, text-shadow): that
+   style is a single card title, and MagicMirror's own module header already provides that here.
+   The student name is a section label inside the card, so it keeps MyAgenda's uppercase and
+   weight but is left-aligned, 0.9rem and shadow-free; a centred 28px name would outrank the
+   missing list below it. */
 .cg-root .cg-student-name {
-	margin-bottom: 0.3em;
+	margin-bottom: 4px;
+	padding-left: 2px;
 	overflow: hidden;
-	font-weight: 600;
+	font-size: calc(0.9rem * var(--cg-font-scale));
+	font-weight: 650;
 	text-overflow: ellipsis;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
 	white-space: nowrap;
 	unicode-bidi: isolate;
 	color: var(--cg-text);
@@ -88,47 +136,137 @@ body.mm-day .cg-root {
 	color: var(--cg-text-2);
 }
 
-/* Missing work: the most prominent block (accent rail, tint, heavier weight). */
+/* Missing work: the most prominent block (warm header, tinted rows with an amber ring). */
 .cg-root .cg-missing {
-	margin-bottom: 0.6em;
-	padding: 0.3em 0.6em;
-	background: var(--cg-warn-bg);
-	border-left: 4px solid var(--cg-warn-line);
-	border-radius: 0 10px 10px 0;
+	margin-bottom: 8px;
+}
+
+.cg-root .cg-missing-head {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin-bottom: 4px;
+	padding-left: 2px;
+}
+
+.cg-root .cg-missing-title {
+	font-size: calc(0.9rem * var(--cg-font-scale));
+	font-weight: 650;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--cg-warn);
+}
+
+/* Warning graphic: a fixed box, so the Lottie svg or the CSS icon never shifts the layout. */
+.cg-root .cg-warning {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	overflow: hidden;
+}
+
+.cg-root .cg-warning svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.cg-root .cg-warning-icon {
+	font-size: 22px;
+	line-height: 1;
+	color: var(--cg-warn-icon);
+	transform-origin: center;
+	animation: cg-warning-pulse 3.2s ease-in-out infinite;
+}
+
+/* Slow, low-glow pulse: opacity and transform only. */
+@keyframes cg-warning-pulse {
+	0%,
+	100% {
+		opacity: 0.75;
+		transform: scale(1);
+	}
+
+	50% {
+		opacity: 1;
+		transform: scale(1.1);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cg-root .cg-warning-icon {
+		animation: none;
+	}
+}
+
+/* warningLoop "once": three iterations (3.2s each, the same count as the Lottie's first play
+   plus 2 loops), then rest on the keyframe end state (same as the resting look). */
+.cg-root.cg-warn-once .cg-warning-icon {
+	animation-fill-mode: forwards;
+	animation-iteration-count: 3;
+}
+
+/* Hidden by MagicMirror (opacity, not display:none): do not keep animating off screen. */
+.cg-root.cg-suspended .cg-warning-icon {
+	animation-play-state: paused;
+}
+
+.cg-root.cg-reduce-motion .cg-warning-icon {
+	animation: none;
 }
 
 .cg-root .cg-missing-item {
 	display: grid;
 	grid-template-columns: auto minmax(0, 1fr) auto auto;
-	gap: 0 0.5em;
+	gap: 2px 8px;
 	align-items: baseline;
-	padding: 0.2em 0;
+	margin-bottom: 4px;
+	padding: 6px 8px;
+	background: var(--cg-missing-bg);
+	border-radius: 14px;
+	box-shadow:
+		0 6px 12px rgb(0 0 0 / 18%),
+		inset 0 0 0 1px var(--cg-missing-ring);
 }
 
 .cg-root .cg-missing-icon {
 	grid-column: 1;
 	grid-row: 1;
-	align-self: center;
+	align-self: start;
+	padding-top: 0.15em;
+	font-size: calc(1rem * var(--cg-font-scale));
 	color: var(--cg-warn);
 }
 
+/* Assignment name: bold, at most two lines in the compact layout. */
+/* stylelint-disable property-no-vendor-prefix, value-no-vendor-prefix */
 .cg-root .cg-missing-name {
+	display: -webkit-box;
 	grid-column: 2 / -1;
 	grid-row: 1;
 	min-width: 0;
 	overflow: hidden;
-	font-weight: 600;
+	font-size: calc(0.9rem * var(--cg-font-scale));
+	font-weight: 650;
+	line-height: 1.15;
 	text-overflow: ellipsis;
-	white-space: nowrap;
+	overflow-wrap: anywhere;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
 	unicode-bidi: isolate;
-	color: var(--cg-text);
+	color: var(--cg-title);
 }
+/* stylelint-enable property-no-vendor-prefix, value-no-vendor-prefix */
 
 .cg-root .cg-missing-course {
 	grid-column: 2;
 	grid-row: 2;
 	min-width: 0;
 	overflow: hidden;
+	font-size: calc(0.72rem * var(--cg-font-scale));
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	unicode-bidi: isolate;
@@ -138,6 +276,8 @@ body.mm-day .cg-root {
 .cg-root .cg-missing-due {
 	grid-column: 3;
 	grid-row: 2;
+	font-size: calc(0.72rem * var(--cg-font-scale));
+	font-weight: 600;
 	font-variant-numeric: tabular-nums;
 	white-space: nowrap;
 	color: var(--cg-warn);
@@ -146,6 +286,7 @@ body.mm-day .cg-root {
 .cg-root .cg-missing-points {
 	grid-column: 4;
 	grid-row: 2;
+	font-size: calc(0.72rem * var(--cg-font-scale));
 	font-variant-numeric: tabular-nums;
 	white-space: nowrap;
 	color: var(--cg-text-2);
@@ -157,8 +298,10 @@ body.mm-day .cg-root {
 }
 
 .cg-root .cg-more {
-	padding-top: 0.1em;
-	color: var(--cg-text-2);
+	margin-top: 6px;
+	font-size: calc(0.72rem * var(--cg-font-scale));
+	text-align: right;
+	opacity: 0.7;
 }
 
 /* Full layout: one line per missing item. */
@@ -167,7 +310,9 @@ body.mm-day .cg-root {
 }
 
 .cg-root.cg-layout-full .cg-missing-name {
+	display: block;
 	grid-column: 2;
+	white-space: nowrap;
 }
 
 .cg-root.cg-layout-full .cg-missing-course {
@@ -188,14 +333,16 @@ body.mm-day .cg-root {
 /* Nothing missing */
 .cg-root .cg-clear {
 	display: flex;
-	gap: 0.5em;
+	gap: 8px;
 	align-items: baseline;
-	margin-bottom: 0.4em;
+	margin-bottom: 6px;
+	padding-left: 2px;
+	font-size: calc(0.82rem * var(--cg-font-scale));
 	color: var(--cg-text-2);
 }
 
 .cg-root .cg-clear-icon {
-	color: var(--cg-ok);
+	color: var(--cg-icon);
 }
 
 /* Course rows: fixed grade (6em), note (3.2em) and badge (2.4em) columns so they line up across
@@ -203,7 +350,8 @@ body.mm-day .cg-root {
 .cg-root .cg-courses {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) 6em 3.2em 2.4em;
-	column-gap: 0.6em;
+	gap: 4px 8px;
+	font-size: calc(0.82rem * var(--cg-font-scale));
 }
 
 .cg-root .cg-course {
@@ -211,17 +359,23 @@ body.mm-day .cg-root {
 	grid-template-columns: subgrid;
 	grid-column: 1 / -1;
 	align-items: baseline;
-	padding: 0.15em 0;
+	padding: 6px 8px;
+	background: var(--cg-row-bg);
+	border-radius: 14px;
+	box-shadow:
+		0 6px 12px rgb(0 0 0 / 18%),
+		inset 0 0 0 1px var(--cg-row-ring);
 }
 
 .cg-root .cg-course-name {
 	grid-column: 1;
 	min-width: 0;
 	overflow: hidden;
+	font-weight: 650;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	unicode-bidi: isolate;
-	color: var(--cg-text);
+	color: var(--cg-title);
 }
 
 .cg-root .cg-course-grade {
@@ -230,7 +384,7 @@ body.mm-day .cg-root {
 	font-variant-numeric: tabular-nums;
 	text-align: right;
 	white-space: nowrap;
-	color: var(--cg-text);
+	color: var(--cg-title);
 }
 
 .cg-root .cg-grade-none {
@@ -248,13 +402,14 @@ body.mm-day .cg-root {
 
 .cg-root .cg-period-note {
 	grid-column: 3;
+	font-size: calc(0.72rem * var(--cg-font-scale));
 	color: var(--cg-text-2);
 }
 
 .cg-root .cg-badge {
 	display: inline-flex;
 	grid-column: 4;
-	gap: 0.3em;
+	gap: 4px;
 	align-items: baseline;
 	justify-content: flex-end;
 	min-width: 2.4em;
@@ -269,31 +424,35 @@ body.mm-day .cg-root {
 
 /* Recent grades (full layout) */
 .cg-root .cg-recent {
-	margin-top: 0.6em;
-	padding-top: 0.5em;
-	border-top: 1px solid var(--cg-border);
+	margin-top: 8px;
 }
 
 .cg-root .cg-recent-item {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(0, 8em) auto auto;
-	gap: 0 0.6em;
+	gap: 0 8px;
 	align-items: baseline;
-	padding: 0.15em 0;
+	margin-bottom: 4px;
+	padding: 6px 8px;
+	background: var(--cg-row-bg);
+	border-radius: 14px;
+	box-shadow: inset 0 0 0 1px var(--cg-row-ring);
 }
 
 .cg-root .cg-recent-name {
 	min-width: 0;
 	overflow: hidden;
+	font-weight: 650;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	unicode-bidi: isolate;
-	color: var(--cg-text);
+	color: var(--cg-title);
 }
 
 .cg-root .cg-recent-course {
 	min-width: 0;
 	overflow: hidden;
+	font-size: calc(0.72rem * var(--cg-font-scale));
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	unicode-bidi: isolate;
@@ -305,10 +464,11 @@ body.mm-day .cg-root {
 	font-variant-numeric: tabular-nums;
 	text-align: right;
 	white-space: nowrap;
-	color: var(--cg-text);
+	color: var(--cg-title);
 }
 
 .cg-root .cg-marker {
+	font-size: calc(0.72rem * var(--cg-font-scale));
 	white-space: nowrap;
 	color: var(--cg-text-2);
 }
@@ -323,12 +483,13 @@ body.mm-day .cg-root {
 }
 
 .cg-root .cg-footer {
-	margin-top: 0.6em;
-	padding-top: 0.4em;
-	border-top: 1px solid var(--cg-border);
+	margin-top: 8px;
+	font-size: calc(0.72rem * var(--cg-font-scale));
+	text-align: center;
 	color: var(--cg-text-2);
 }
 
 .cg-root .cg-footer-stale {
+	font-weight: 600;
 	color: var(--cg-warn);
 }

@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-06
+
+### Added
+
+- Animated warning graphic next to a student's missing list, using the Meteocons "code-orange" Lottie animation (bundled in `animations/`, MIT, credit in the README). New options `warningAnimation` (`"lottie"`, `"css"` or `"none"`) and `warningLoop` (`"loop"`, or `"once"`: 3 plays in total, then rest; the CSS pulse runs 3 iterations then rests, and a suspended module pauses it), and `reduceMotion`. The CSS pulse is also the automatic fallback when Lottie cannot load or the system asks for reduced motion.
+- Runtime dependency `lottie-web`, pinned to exactly 5.10.2 on purpose (shared with the Glass modules; Dependabot is told to ignore it). Run `npm ci --omit=dev` after installing or updating.
+- Lottie lifecycle that matches the other Glass modules: players are registered per render, bound when attached, paused on suspend, resumed on resume and destroyed when detached, with at most one player per student and two per module instance.
+
+### Changed
+
+- The compact layout now lists the missing assignments by name (course, due date and points), above the course rows, with the usual `maxMissing` cap and "+N more". The compact card is 465 px wide by default (CSS variable `--cg-compact-width`), so two fit side by side inside MagicMirror²'s stock page margins.
+- Styling follows the MMM-MyAgenda design tokens so the cards sit naturally beside it in the corner regions.
+
 ## [1.0.0] - 2026-10-06
 
 ### Added
@@ -21,5 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit tests on Node's built-in test runner with a mocked `fetch`, fictional fixtures only, and a repository privacy scan.
 - ESLint (flat config), Prettier, markdownlint and stylelint, a GitHub Actions workflow and a Dependabot configuration.
 
-[Unreleased]: https://github.com/hearter20176/MMM-CanvasGrades/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/hearter20176/MMM-CanvasGrades/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/hearter20176/MMM-CanvasGrades/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/hearter20176/MMM-CanvasGrades/releases/tag/v1.0.0

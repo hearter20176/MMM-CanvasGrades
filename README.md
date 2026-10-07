@@ -11,7 +11,8 @@ _Sample data. Student names, courses and grades are fictional._
 For every student linked to the observer account:
 
 - One row per course with the current grade (letter, percent or both) and a badge when work is missing.
-- A "Missing" list (full layout): assignment, course, due date relative to today ("due Tue", "3 days ago") and points.
+- A "Missing" list, in both layouts: assignment name, course, due date relative to today ("due Tue", "3 days ago") and points, above the course rows. It is capped by `maxMissing`, and the rest show as "+N more".
+- A small warning mark (an animated Lottie icon, or a pulsing icon) beside a student's missing list. It is decoration only; the text list carries the information.
 - Optionally the most recent graded assignments, with late, excused and hidden markers.
 
 The module always tells you which of these states it is in:
@@ -27,7 +28,7 @@ The module always tells you which of these states it is in:
 
 ## Requirements
 
-- MagicMirror² (2.33 itself needs Node 22.18 or newer). The module runs on any Node version from 20 up, and has no runtime dependencies.
+- MagicMirror² (2.33 itself needs Node 22.18 or newer). The module runs on any Node version from 20 up. Its one runtime dependency is `lottie-web`, used only for the animated warning mark.
 - A Canvas parent (observer) account that can create an access token. Some schools disable user-generated tokens; if the "New Access Token" button is missing in step 2 below, ask the school.
 
 ## Installation
@@ -37,7 +38,12 @@ cd ~/MagicMirror/modules
 git clone https://github.com/hearter20176/MMM-CanvasGrades
 ```
 
-No `npm install` is needed to run the module; it has no runtime dependencies.
+Then install the runtime dependency. This step is required for the Lottie warning animation (without it the module still works and falls back to the CSS pulse):
+
+```sh
+cd MMM-CanvasGrades
+npm ci --omit=dev
+```
 
 Before you add a token, make sure the mirror is not reachable from networks you do not trust: in `config.js` keep `address: "localhost"` (or the mirror's own address) and set `ipWhitelist`. See [Who can talk to the module](#who-can-talk-to-the-module).
 
@@ -46,9 +52,10 @@ Before you add a token, make sure the mirror is not reachable from networks you 
 ```sh
 cd ~/MagicMirror/modules/MMM-CanvasGrades
 git pull
+npm ci --omit=dev
 ```
 
-No `npm install` is needed after an update either.
+Run `npm ci --omit=dev` after every update too, so `lottie-web` matches `package-lock.json`. Restart MagicMirror² afterwards.
 
 ## Access token
 
@@ -83,23 +90,40 @@ Add the module to `config.js`. A compact column in a side region:
     canvasUrl: "https://canvas.example.edu",
     accessTokenFile: "config/canvas-token",
     layout: "compact",
+    maxMissing: 4,
     excludeCourses: ["1005"],
   },
 },
 ```
 
-One instance per student, in different regions, each with its own cache if you use one:
+One instance per student on one MagicMirror² page, in the two side regions (this uses the MMM-pages `classes` setting; leave `classes` out if you do not use pages). In portrait, each side column is about half of the 1080 px screen, so both use the compact layout, whose card is 465 px wide by default (set in px, not rem, so it does not change with MagicMirror²'s 20 px root font size; two cards fit side by side inside MagicMirror²'s stock 60 px page margins, and on a narrower screen the card shrinks to fit). If your page margins are smaller you can widen it, for example `.cg-root { --cg-compact-width: 496px; }` in `css/custom.css`. The IDs are fictional:
 
 ```js
 {
   module: "MMM-CanvasGrades",
   position: "top_left",
-  header: "Student A",
+  classes: "page2",
   config: {
     canvasUrl: "https://canvas.example.edu",
     accessTokenFile: "config/canvas-token",
     students: ["2001"],
     layout: "compact",
+    maxMissing: 4,
+    showStudentName: true,
+    cache: true,
+  },
+},
+{
+  module: "MMM-CanvasGrades",
+  position: "top_right",
+  classes: "page2",
+  config: {
+    canvasUrl: "https://canvas.example.edu",
+    accessTokenFile: "config/canvas-token",
+    students: ["2002"],
+    layout: "compact",
+    maxMissing: 4,
+    showStudentName: true,
     cache: true,
   },
 },
@@ -109,46 +133,63 @@ The "observee" IDs used by `students` are Canvas user IDs. While you are logged 
 
 ### Options
 
-| Option                   | Default     | Description                                                                                                                                                                                                                  |
-| ------------------------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `canvasUrl`              | `""`        | Required. Your school's Canvas address, `https://` only. A trailing slash or `/api/v1` is removed for you.                                                                                                                   |
-| `accessToken`            | `""`        | Canvas token. Visible to browsers; prefer `accessTokenFile`.                                                                                                                                                                 |
-| `accessTokenFile`        | `""`        | Path to a file that contains only the token. It must be inside the MagicMirror² `config` folder and named `canvas-token` or `canvas-token-<anything>`; other files there (for example other modules' tokens) are never read. |
-| `students`               | `[]`        | Canvas user IDs to show, in display order. Empty shows every linked student.                                                                                                                                                 |
-| `studentLabels`          | `{}`        | Map of Canvas user ID to a display label, for example `{ "2001": "A." }`.                                                                                                                                                    |
-| `nameDisplay`            | `"short"`   | `"full"`, `"short"` (Canvas short name), `"initials"` or `"none"`.                                                                                                                                                           |
-| `showStudentName`        | `"auto"`    | `"auto"` (only with more than one student), `true` or `false`.                                                                                                                                                               |
-| `courses`                | `[]`        | Course IDs to include, in this order. Empty shows all active courses.                                                                                                                                                        |
-| `excludeCourses`         | `[]`        | Course IDs to hide, such as a homeroom.                                                                                                                                                                                      |
-| `courseLabels`           | `{}`        | Map of course ID to a short display name.                                                                                                                                                                                    |
-| `maxCourseNameLength`    | `24`        | Course names longer than this (8 to 80) are cut with "...".                                                                                                                                                                  |
-| `gradeDisplay`           | `"auto"`    | `"auto"` (letter if the course has one, else percent), `"letter"`, `"percent"` or `"both"`.                                                                                                                                  |
-| `scoreType`              | `"current"` | `"current"` (ungraded work ignored) or `"final"` (ungraded counts as zero).                                                                                                                                                  |
-| `gradingPeriod`          | `"current"` | `"current"` grading period or `"all"` (course total).                                                                                                                                                                        |
-| `showCourseGrades`       | `true`      | Show the per-course grade rows.                                                                                                                                                                                              |
-| `showMissing`            | `true`      | Fetch and show missing work.                                                                                                                                                                                                 |
-| `maxMissing`             | `8`         | Most missing rows per student (1 to 30); the rest show as "+N more".                                                                                                                                                         |
-| `missingLookbackDays`    | `30`        | Ignore missing work due more than this many days ago. `0` means no limit.                                                                                                                                                    |
-| `inferMissing`           | `true`      | Also treat unsubmitted, past-due, online-submission work as missing when Canvas has not flagged it.                                                                                                                          |
-| `showRecentGrades`       | `0`         | Show the N most recently graded assignments per student (0 to 10). `0` is off.                                                                                                                                               |
-| `recentGradesDays`       | `7`         | Only grades posted within this many days.                                                                                                                                                                                    |
-| `assignmentScoreDisplay` | `"auto"`    | `"auto"` (follow each assignment's grading type), `"points"`, `"percent"` or `"letter"`.                                                                                                                                     |
-| `layout`                 | `"full"`    | `"full"` for wide regions, `"compact"` for side columns (course, grade and missing count only).                                                                                                                              |
-| `updateInterval`         | `1800000`   | Milliseconds between updates (30 minutes). Minimum 5 minutes.                                                                                                                                                                |
-| `requestTimeout`         | `20000`     | Milliseconds allowed per request (5000 to 30000; MagicMirror² itself cuts requests off after 30 seconds).                                                                                                                    |
-| `staleAfter`             | `0`         | Milliseconds after the last good update before data is marked stale. `0` means twice `updateInterval` plus 5 minutes.                                                                                                        |
-| `errorGraceSeconds`      | `120`       | A temporary error with no data yet keeps showing "Loading" for this long before an error is shown.                                                                                                                           |
-| `pauseBetween`           | `null`      | Quiet hours such as `["22:00", "06:00"]` (mirror local time). No updates inside the window; one runs when it ends.                                                                                                           |
-| `cache`                  | `false`     | Keep the last good data on disk so a restart during an outage shows stale data. The module chooses the file itself (`config/canvas-grades-cache-<id>.json`); it cannot be set.                                               |
-| `locale`                 | `""`        | Language for dates and numbers, such as `"en-US"`. Empty uses the browser locale.                                                                                                                                            |
-| `timeFormat`             | `12`        | `12` or `24`, for due times.                                                                                                                                                                                                 |
-| `animationSpeed`         | `1000`      | Fade time in milliseconds when the display updates.                                                                                                                                                                          |
+| Option                   | Default     | Description                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------------------ | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `canvasUrl`              | `""`        | Required. Your school's Canvas address, `https://` only. A trailing slash or `/api/v1` is removed for you.                                                                                                                                                                                                                                                                                                      |
+| `accessToken`            | `""`        | Canvas token. Visible to browsers; prefer `accessTokenFile`.                                                                                                                                                                                                                                                                                                                                                    |
+| `accessTokenFile`        | `""`        | Path to a file that contains only the token. It must be inside the MagicMirror² `config` folder and named `canvas-token` or `canvas-token-<anything>`; other files there (for example other modules' tokens) are never read.                                                                                                                                                                                    |
+| `students`               | `[]`        | Canvas user IDs to show, in display order. Empty shows every linked student.                                                                                                                                                                                                                                                                                                                                    |
+| `studentLabels`          | `{}`        | Map of Canvas user ID to a display label, for example `{ "2001": "A." }`.                                                                                                                                                                                                                                                                                                                                       |
+| `nameDisplay`            | `"short"`   | `"full"`, `"short"` (Canvas short name), `"initials"` or `"none"`.                                                                                                                                                                                                                                                                                                                                              |
+| `showStudentName`        | `"auto"`    | `"auto"` (only with more than one student), `true` or `false`.                                                                                                                                                                                                                                                                                                                                                  |
+| `courses`                | `[]`        | Course IDs to include, in this order. Empty shows all active courses.                                                                                                                                                                                                                                                                                                                                           |
+| `excludeCourses`         | `[]`        | Course IDs to hide, such as a homeroom.                                                                                                                                                                                                                                                                                                                                                                         |
+| `courseLabels`           | `{}`        | Map of course ID to a short display name.                                                                                                                                                                                                                                                                                                                                                                       |
+| `maxCourseNameLength`    | `24`        | Course names longer than this (8 to 80) are cut with "...".                                                                                                                                                                                                                                                                                                                                                     |
+| `gradeDisplay`           | `"auto"`    | `"auto"` (letter if the course has one, else percent), `"letter"`, `"percent"` or `"both"`.                                                                                                                                                                                                                                                                                                                     |
+| `scoreType`              | `"current"` | `"current"` (ungraded work ignored) or `"final"` (ungraded counts as zero).                                                                                                                                                                                                                                                                                                                                     |
+| `gradingPeriod`          | `"current"` | `"current"` grading period or `"all"` (course total).                                                                                                                                                                                                                                                                                                                                                           |
+| `showCourseGrades`       | `true`      | Show the per-course grade rows.                                                                                                                                                                                                                                                                                                                                                                                 |
+| `showMissing`            | `true`      | Fetch and show missing work.                                                                                                                                                                                                                                                                                                                                                                                    |
+| `maxMissing`             | `8`         | Most missing rows per student (1 to 30, default 8); the rest show as "+N more". In the compact layout 4 keeps the card short enough to sit beside other side-column modules.                                                                                                                                                                                                                                    |
+| `missingLookbackDays`    | `30`        | Ignore missing work due more than this many days ago. `0` means no limit.                                                                                                                                                                                                                                                                                                                                       |
+| `inferMissing`           | `true`      | Also treat unsubmitted, past-due, online-submission work as missing when Canvas has not flagged it.                                                                                                                                                                                                                                                                                                             |
+| `showRecentGrades`       | `0`         | Show the N most recently graded assignments per student (0 to 10). `0` is off.                                                                                                                                                                                                                                                                                                                                  |
+| `recentGradesDays`       | `7`         | Only grades posted within this many days.                                                                                                                                                                                                                                                                                                                                                                       |
+| `assignmentScoreDisplay` | `"auto"`    | `"auto"` (follow each assignment's grading type), `"points"`, `"percent"` or `"letter"`.                                                                                                                                                                                                                                                                                                                        |
+| `layout`                 | `"full"`    | `"full"` for wide regions, `"compact"` for side columns (a 465 px card). Both layouts list the missing assignments by name; full adds recent grades.                                                                                                                                                                                                                                                            |
+| `warningAnimation`       | `"lottie"`  | The warning mark beside a student's missing list: `"lottie"` (animated Meteocons icon), `"css"` (a slow CSS pulse of the warning icon) or `"none"`. `"css"` is also the automatic fallback when Lottie cannot load or motion is reduced.                                                                                                                                                                        |
+| `warningLoop`            | `"loop"`    | `"loop"` plays continuously; `"once"` plays 3 times in total (the first play plus 2 loops) when the mark appears and whenever the data changes, then rests on the last frame. The option also applies to the CSS fallback: under `"once"` the pulse runs 3 iterations and then rests (class `cg-warn-once`). A suspended or hidden module pauses the pulse as well as the Lottie player (class `cg-suspended`). |
+| `reduceMotion`           | `false`     | `true` forces the low-motion behaviour (no Lottie player, no pulse). The system "reduce motion" setting is honoured automatically.                                                                                                                                                                                                                                                                              |
+| `updateInterval`         | `1800000`   | Milliseconds between updates (30 minutes). Minimum 5 minutes.                                                                                                                                                                                                                                                                                                                                                   |
+| `requestTimeout`         | `20000`     | Milliseconds allowed per request (5000 to 30000; MagicMirror² itself cuts requests off after 30 seconds).                                                                                                                                                                                                                                                                                                       |
+| `staleAfter`             | `0`         | Milliseconds after the last good update before data is marked stale. `0` means twice `updateInterval` plus 5 minutes.                                                                                                                                                                                                                                                                                           |
+| `errorGraceSeconds`      | `120`       | A temporary error with no data yet keeps showing "Loading" for this long before an error is shown.                                                                                                                                                                                                                                                                                                              |
+| `pauseBetween`           | `null`      | Quiet hours such as `["22:00", "06:00"]` (mirror local time). No updates inside the window; one runs when it ends.                                                                                                                                                                                                                                                                                              |
+| `cache`                  | `false`     | Keep the last good data on disk so a restart during an outage shows stale data. The module chooses the file itself (`config/canvas-grades-cache-<id>.json`); it cannot be set.                                                                                                                                                                                                                                  |
+| `locale`                 | `""`        | Language for dates and numbers, such as `"en-US"`. Empty uses the browser locale.                                                                                                                                                                                                                                                                                                                               |
+| `timeFormat`             | `12`        | `12` or `24`, for due times.                                                                                                                                                                                                                                                                                                                                                                                    |
+| `animationSpeed`         | `1000`      | Fade time in milliseconds when the display updates.                                                                                                                                                                                                                                                                                                                                                             |
 
-Unknown values of the options the helper reads fall back to the default and a warning is written to the MagicMirror² log. The display-only options (`layout`, `showStudentName`, `timeFormat`, `errorGraceSeconds`, `animationSpeed`) fall back to their defaults silently.
+Unknown values of the options the helper reads fall back to the default and a warning is written to the MagicMirror² log. The display-only options (`layout`, `showStudentName`, `timeFormat`, `errorGraceSeconds`, `animationSpeed`, `warningAnimation`, `warningLoop`, `reduceMotion`) fall back to their defaults silently.
 
 ## Placement
 
-The module is designed for the portrait corner and third regions: `top_left`, `top_right`, `bottom_left` and `bottom_right` with `layout: "compact"` (a column of roughly 500 px), or `upper_third`, `middle_center` and `lower_third` with `layout: "full"` (up to about 1000 px wide). It is not intended for `top_bar`, `bottom_bar` or the fullscreen regions. Height is bounded by `maxMissing`, `showRecentGrades` and the number of courses.
+The module is designed for the portrait corner and third regions: `top_left`, `top_right`, `bottom_left` and `bottom_right` with `layout: "compact"` (a 465 px card by default, set with the `--cg-compact-width` CSS variable; two fit side by side inside MagicMirror²'s stock page margins on a 1080 px screen), or `upper_third`, `middle_center` and `lower_third` with `layout: "full"` (up to about 1000 px wide). It is not intended for `top_bar`, `bottom_bar` or the fullscreen regions. Height is bounded by `maxMissing`, `showRecentGrades` and the number of courses.
+
+## Warning animation and performance
+
+The warning mark appears once per student, only while that student has at least one missing item. It is hidden from screen readers and never carries information by itself.
+
+- With `warningAnimation: "lottie"` the module loads the bundled `lottie-web` player only when it is needed and uses `animations/code-orange.json` (about 3.5 KB). It never loads anything from the network.
+- The player follows the same lifecycle as the other Glass modules, because leaked animation players can exhaust a mirror's CPU and memory: each render registers its containers, players are created only when the container is attached to the page, containers that have left the page are cleaned up and their players destroyed, nothing is destroyed during a render, players pause when MagicMirror² hides or suspends the module and resume when it returns, and everything is destroyed when the missing list disappears. There is at most one player per student and two per module instance, and no player is created while the module is hidden.
+- If `lottie-web` is missing (you did not run `npm ci --omit=dev`) or fails to load, the module falls back to the CSS pulse once, with no retry loop.
+- Reduced motion: with `reduceMotion: true`, or when the system reports "prefers reduced motion", no player is created and the mark is a static icon (`warningAnimation: "css"` becomes a static icon too). `warningAnimation: "none"` shows nothing.
+- Use `warningLoop: "once"` on a small Raspberry Pi if you want the mark to rest most of the time.
+
+## Third-party notice
+
+The warning animation `animations/code-orange.json` is a copy of the "code-orange" icon from [Meteocons](https://github.com/basmilius/weather-icons) by Bas Milius, used under the MIT license (see `animations/LICENSE-meteocons.md`). The animation is played with [lottie-web](https://github.com/airbnb/lottie-web) (MIT). The version is pinned on purpose to exactly 5.10.2, the version all the Glass modules use, so the player lifecycle behaves the same in every module; `.github/dependabot.yaml` tells Dependabot to leave it alone. Upgrade it by hand, in all modules together.
 
 ## How missing work is decided
 
@@ -165,6 +206,8 @@ Canvas's own "missing" flag is trusted first. The module then applies these rule
 Due dates are the student's own due date where Canvas provides one. Past-due comparisons use absolute time, and dates are shown in the mirror's local time. If Canvas's `missing_submissions` endpoint is available to your account it is combined with the above and duplicates are removed; if it is refused, the module quietly works from each course's submissions instead.
 
 ## Privacy
+
+- The animation and its player are bundled and served by your own mirror; the module makes no request to any other site from the browser.
 
 - The token is used only by the module's helper process on the mirror. It is never sent to the browser by the module, never written to the log and never written to the cache file.
 - The browser receives a display-ready summary: names, grades and dates. It does not receive Canvas IDs, Canvas URLs or raw API responses.

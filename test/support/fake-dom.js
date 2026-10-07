@@ -43,6 +43,7 @@ class FakeElement {
 		this.textContent = "";
 		this.children = [];
 		this.parent = null;
+		this.isConnected = false;
 		this.style = {};
 		this.attributes = {};
 		this.classList = new FakeClassList(this);
@@ -107,14 +108,34 @@ function textsOf(root, selector) {
 	return root.querySelectorAll(selector).map(textOf);
 }
 
+// Marks an element tree as attached to (or detached from) the document, like MagicMirror does
+// when it swaps the module DOM.
+function setConnected(el, value) {
+	el.isConnected = value;
+	for (const child of el.children) setConnected(child, value);
+}
+
+function mount(el) {
+	setConnected(el, true);
+	return el;
+}
+
+function unmount(el) {
+	setConnected(el, false);
+	return el;
+}
+
 function hasClass(el, c) {
 	return el.classList.contains(c);
 }
 
 function install(target) {
+	const body = new FakeElement("body");
+	body.isConnected = true;
 	target.document = {
+		body,
 		createElement: (tag) => new FakeElement(tag)
 	};
 }
 
-module.exports = { FakeElement, FakeClassList, textOf, textsOf, hasClass, install };
+module.exports = { FakeElement, FakeClassList, textOf, textsOf, hasClass, mount, unmount, install };
